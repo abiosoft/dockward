@@ -11,10 +11,14 @@ import (
 	"os/exec"
 
 	"github.com/abiosoft/dockward/tcpforward"
+	docker "github.com/docker/engine-api/client"
+	"github.com/docker/engine-api/types"
+	"golang.org/x/net/context"
 )
 
 var dockerBin string
 var dockerMode bool
+var monitorMode bool
 
 const NAME = "dockward"
 
@@ -22,6 +26,8 @@ func init() {
 	if len(os.Args) > 1 && os.Args[1] == "docker" {
 		dockerMode = true
 		return
+	} else if len(os.Args) > 1 && os.Args[1] == "monitor" {
+		monitorMode = true
 	}
 	d, err := exec.LookPath("docker")
 	if err != nil {
@@ -37,9 +43,44 @@ func main() {
 	testContainer()
 }
 
+const (
+	Die       = "die"
+	Start     = "start"
+	Container = "container"
+)
+
+type Event struct {
+	Status string `json:"status"`
+	Type   string
+	Id     string `json:"id"`
+	Actor  struct {
+		Attributes map[string]string
+	}
+}
+
+func monitor() {
+	client, err := docker.NewEnvClient()
+	exitWithErr(err)
+	resp, err := client.Events(context.Background(), types.EventsOptions{})
+	exitWithErr(err)
+	decoder := json.NewDecoder(resp)
+	var e Event
+	for {
+		err := decoder.Decode(&e)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			continue
+		}
+		fmt.Println(e)
+	}
+}
+
 func testContainer() {
 	if dockerMode {
 		forwardToContainer()
+		return
+	} else if monitorMode {
+		monitor()
 		return
 	}
 
@@ -77,7 +118,6 @@ func testContainer() {
 }
 
 func ipFromContainer(name string) (string, error) {
-
 	buf := bytes.NewBuffer(nil)
 	opt := &options{
 		args:   []string{"inspect", name},
@@ -105,7 +145,6 @@ func ipFromContainer(name string) (string, error) {
 }
 
 func connectContainer(name string) error {
-	//network ls -q -f name=dockward
 	b := bytes.NewBuffer(nil)
 	opts := &options{
 		stdout: b,
