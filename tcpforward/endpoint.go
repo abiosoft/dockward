@@ -19,6 +19,13 @@ func (e Endpoints) Len() int {
 }
 
 func (e *Endpoints) Add(ep Endpoint) {
+	for i, endpoint := range *e {
+		if endpoint.Id == ep.Id {
+			// already exists, replace instead.
+			(*e)[i] = ep
+			return
+		}
+	}
 	*e = append(*e, ep)
 }
 
