@@ -12,5 +12,9 @@ type Random struct{}
 
 // Select satisfies Policy.
 func (r Random) Select(d Endpoints) Endpoint {
-	return d[rand.Intn(len(d))]
+	i := rand.Int() % (len(d) - 1)
+	if i < 0 {
+		i = 0
+	}
+	return d[i]
 }

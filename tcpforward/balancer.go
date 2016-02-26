@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"github.com/abiosoft/dockward/util"
 )
 
 type Message struct {
@@ -71,30 +72,31 @@ func (b *Balancer) Select(e Endpoints) Endpoint {
 }
 
 func (b *Balancer) ListenForEndpoints() (int, error) {
-	port, err := randomPort()
+	port, err := util.RandomPort()
 	if err != nil {
 		return port, err
 	}
 
 	go func() {
-		err := http.ListenAndServe(":"+fmt.Sprint(port), http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			var message Message
-			err := json.NewDecoder(r.Body).Decode(&message)
-			if err != nil {
-				http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-				return
-			}
+		err := http.ListenAndServe(":"+fmt.Sprint(port),
+			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				var message Message
+				err := json.NewDecoder(r.Body).Decode(&message)
+				if err != nil {
+					http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+					return
+				}
 
-			b.Lock()
-			if message.Remove {
-				b.Endpoints.Delete(message.Endpoint.Id)
-			} else {
-				b.Endpoints.Add(message.Endpoint)
-			}
-			b.Unlock()
+				b.Lock()
+				if message.Remove {
+					b.Endpoints.Delete(message.Endpoint.Id)
+				} else {
+					b.Endpoints.Add(message.Endpoint)
+				}
+				b.Unlock()
 
-			w.WriteHeader(200)
-		}))
+				w.WriteHeader(200)
+			}))
 
 		// should not get here
 		log.Println(err)

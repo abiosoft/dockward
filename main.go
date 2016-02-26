@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,15 +9,25 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/abiosoft/dockward/network"
 	"github.com/abiosoft/dockward/tcpforward"
 	docker "github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
+	"github.com/docker/engine-api/types/container"
+	"github.com/docker/engine-api/types/filters"
+	"github.com/docker/engine-api/types/strslice"
+	"github.com/docker/go-connections/nat"
 	"golang.org/x/net/context"
 )
 
 var dockerBin string
 var dockerMode bool
 var monitorMode bool
+var client *docker.Client
+var dockerNetwork *network.Network
+var dockwardContainerId string
+
+var errNetworkNotFound = errors.New("Error: Network not found. Consider restarting dockward.")
 
 const NAME = "dockward"
 
@@ -35,6 +44,12 @@ func init() {
 	}
 	dockerBin = d
 	if err := run(args("version").Mute()); err != nil {
+		exitWithErr(err)
+	}
+	if client, err = docker.NewEnvClient(); err != nil {
+		exitWithErr(err)
+	}
+	if dockerNetwork, err = network.Create(client); err != nil {
 		exitWithErr(err)
 	}
 }
@@ -59,7 +74,12 @@ type Event struct {
 }
 
 func monitor() {
-	client, err := docker.NewEnvClient()
+	filter := filters.NewArgs()
+	filter.Add("label", "name=dock")
+	containers, err := client.ContainerList(types.ContainerListOptions{Filter: filter})
+	exitWithErr(err)
+	fmt.Println(containers)
+
 	exitWithErr(err)
 	resp, err := client.Events(context.Background(), types.EventsOptions{})
 	exitWithErr(err)
@@ -95,69 +115,57 @@ func testContainer() {
 		destPort = os.Args[3]
 	}
 
-	ip, err := ipFromContainer(dest)
-	if ip == "" {
-		if err = connectContainer(dest); err == nil {
-			ip, err = ipFromContainer(dest)
-		}
+	var ip string
+	var err error
+	if err = connectContainer(dest); err == nil {
+		ip, err = ipFromContainer(dest)
 	}
 	if err != nil {
 		exitWithErr(err)
-	} else if ip == "" {
-		exitWithErr(errors.New("Error communicating with container"))
 	}
 	dest = ip + ":" + destPort
-	opt := &options{
-		args: []string{"run", "-it", "-p", port + ":" + port, "--net", NAME, NAME, "docker", port, dest},
-	}
+
+	resp, err := client.ContainerCreate(
+		&container.Config{
+			Image: NAME,
+			Cmd:   strslice.StrSlice{"docker", port, dest},
+		},
+		&container.HostConfig{
+			PortBindings: nat.PortMap{
+				nat.Port(port): []nat.PortBinding{
+					nat.PortBinding{
+						HostIP: "0.0.0.0", HostPort: port,
+					},
+				},
+			},
+		},
+		nil,
+		"",
+	)
+
+	exitWithErr(err)
+	dockwardContainerId = resp.ID
+
+	err = dockerNetwork.ConnectContainer(dockwardContainerId)
+	exitWithErr(err)
 
 	fmt.Println("Forwarding", port, "to", dest)
-	err = run(opt)
-	exitWithErr(err)
 
 }
 
 func ipFromContainer(name string) (string, error) {
-	buf := bytes.NewBuffer(nil)
-	opt := &options{
-		args:   []string{"inspect", name},
-		stdout: buf,
-	}
-	err := run(opt)
+	info, err := client.ContainerInspect(name)
 	if err != nil {
 		return "", err
 	}
-	var container []struct {
-		NetworkSettings struct {
-			Networks struct {
-				Dockward struct {
-					IPAddress string
-				} `json:"dockward"`
-			}
-		}
+	if n, ok := info.NetworkSettings.Networks[dockerNetwork.Name]; ok {
+		return n.IPAddress, nil
 	}
-
-	err = json.NewDecoder(buf).Decode(&container)
-	if err != nil {
-		return "", err
-	}
-	return container[0].NetworkSettings.Networks.Dockward.IPAddress, nil
+	return "", errNetworkNotFound
 }
 
 func connectContainer(name string) error {
-	b := bytes.NewBuffer(nil)
-	opts := &options{
-		stdout: b,
-		args:   []string{"network", "ls", "-q", "-f", "name=" + NAME},
-	}
-	if err := run(opts); err != nil {
-		return err
-	} else if b.Len() == 0 {
-		if err := run(args("network", "create", NAME).Mute()); err != nil {
-			return err
-		}
-	}
-	return run(args("network", "connect", NAME, name))
+	return dockerNetwork.ConnectContainer(name)
 }
 
 func forwardToContainer() {
