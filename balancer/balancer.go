@@ -92,7 +92,9 @@ func (b *Balancer) ListenForEndpoints(port int) {
 
 			b.Lock()
 			if message.Remove {
-				b.Endpoints.Delete(message.Endpoint.Ip)
+				log.Println("before", len(b.Endpoints))
+				b.Endpoints.Delete(message.Endpoint.Id)
+				log.Println("after", len(b.Endpoints))
 			} else {
 				b.Endpoints.Add(message.Endpoint)
 			}

@@ -77,7 +77,7 @@ func main() {
 	err = createBalancerContainer(args.HostPort, endpointPort, dests...)
 	exitIfErr(err)
 	if args.ContainerLabel != "" {
-		go monitor(endpointPort, args.ContainerLabel)
+		go monitor(endpointPort, args.HostPort, args.ContainerLabel)
 		fmt.Println("Forwarding", args.HostPort, "to containers with label="+args.ContainerLabel)
 	} else {
 		fmt.Println("Forwarding", args.HostPort, "to container", args.ContainerName+args.ContainerId)

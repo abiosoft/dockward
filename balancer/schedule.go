@@ -7,18 +7,18 @@ import (
 
 // Policy is a selection policy.
 type Policy interface {
-	Select(d Endpoints) Endpoint
+	Select(e Endpoints) Endpoint
 }
 
 // Random is a random policy.
 type Random struct{}
 
 // Select satisfies Policy.
-func (r Random) Select(d Endpoints) Endpoint {
-	if len(d) == 0 {
+func (r Random) Select(e Endpoints) Endpoint {
+	if len(e) == 0 {
 		return Endpoint{}
 	}
-	return d[rand.Int()%len(d)]
+	return e[rand.Int()%len(e)]
 }
 
 func init() {

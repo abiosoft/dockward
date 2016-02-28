@@ -24,6 +24,10 @@ func connectContainer(name string) error {
 	return dockwardNetwork.ConnectContainer(name)
 }
 
+func disconnectContainer(name string) error {
+	return dockwardNetwork.DisconnectContainer(name)
+}
+
 func forwardToBalancer(hostPort int, dests ...string) error {
 	endpoints := make(balancer.Endpoints, len(dests))
 	for i, dest := range dests {
@@ -39,7 +43,7 @@ func forwardToBalancer(hostPort int, dests ...string) error {
 
 func createBalancerContainer(hostPort int, monitorPort int, dests ...string) error {
 	hPort := nat.Port(fmt.Sprintf("%d/tcp", hostPort))
-	mPort := nat.Port(fmt.Sprintf("%d/tcp", monitorPort))
+	mPort := nat.Port(fmt.Sprintf("%d/tcp", balancer.EndpointPort))
 	resp, err := client.ContainerCreate(
 		&container.Config{
 			Image: AppName,
@@ -59,7 +63,7 @@ func createBalancerContainer(hostPort int, monitorPort int, dests ...string) err
 				// endpoints update port
 				mPort: []nat.PortBinding{
 					nat.PortBinding{
-						HostIP: "0.0.0.0", HostPort: fmt.Sprint(balancer.EndpointPort),
+						HostIP: "0.0.0.0", HostPort: fmt.Sprint(monitorPort),
 					},
 				},
 			},

@@ -15,7 +15,6 @@ type Network struct {
 	client *docker.Client
 }
 
-
 // Create creates a new network with a random name.
 func Create(client *docker.Client) (*Network, error) {
 	name := namePrefix + util.RandChars(nameSuffixLen)
@@ -24,7 +23,7 @@ func Create(client *docker.Client) (*Network, error) {
 
 // Create creates a new network using name.
 func CreateWithName(client *docker.Client, name string) (*Network, error) {
-	n, err := client.NetworkCreate(types.NetworkCreate{Name: name})
+	n, err := client.NetworkCreate(types.NetworkCreate{Name: name, Internal: true})
 	if err != nil {
 		return nil, err
 	}
@@ -37,6 +36,10 @@ func CreateWithName(client *docker.Client, name string) (*Network, error) {
 
 func (n *Network) ConnectContainer(id string) error {
 	return n.client.NetworkConnect(n.Id, id, nil)
+}
+
+func (n *Network) DisconnectContainer(id string) error {
+	return n.client.NetworkDisconnect(n.Id, id, false)
 }
 
 func (n *Network) Stop() error {
