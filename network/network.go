@@ -7,12 +7,32 @@ import (
 )
 
 const namePrefix = "dockward_"
-const charLen = 10
+const nameSuffixLen = 10
 
 type Network struct {
 	Name   string
 	Id     string
 	client *docker.Client
+}
+
+
+// Create creates a new network with a random name.
+func Create(client *docker.Client) (*Network, error) {
+	name := namePrefix + util.RandChars(nameSuffixLen)
+	return CreateWithName(client, name)
+}
+
+// Create creates a new network using name.
+func CreateWithName(client *docker.Client, name string) (*Network, error) {
+	n, err := client.NetworkCreate(types.NetworkCreate{Name: name})
+	if err != nil {
+		return nil, err
+	}
+	return &Network{
+		Name:   name,
+		Id:     n.ID,
+		client: client,
+	}, nil
 }
 
 func (n *Network) ConnectContainer(id string) error {
@@ -32,23 +52,4 @@ func (n *Network) Stop() error {
 	}
 	// Remove network
 	return n.client.NetworkRemove(n.Id)
-}
-
-// Create creates a new network with a random name.
-func Create(client *docker.Client) (*Network, error) {
-	name := namePrefix + util.RandChars(charLen)
-	return CreateWithName(client, name)
-}
-
-// Create creates a new network using name.
-func CreateWithName(client *docker.Client, name string) (*Network, error) {
-	n, err := client.NetworkCreate(types.NetworkCreate{Name: name})
-	if err != nil {
-		return nil, err
-	}
-	return &Network{
-		Name:   name,
-		Id:     n.ID,
-		client: client,
-	}, nil
 }

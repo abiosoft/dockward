@@ -1,6 +1,9 @@
-package tcpforward
+package balancer
 
-import "math/rand"
+import (
+	"math/rand"
+	"time"
+)
 
 // Policy is a selection policy.
 type Policy interface {
@@ -12,9 +15,12 @@ type Random struct{}
 
 // Select satisfies Policy.
 func (r Random) Select(d Endpoints) Endpoint {
-	i := rand.Int() % (len(d) - 1)
-	if i < 0 {
-		i = 0
+	if len(d) == 0 {
+		return Endpoint{}
 	}
-	return d[i]
+	return d[rand.Int()%len(d)]
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }

@@ -1,4 +1,4 @@
-package tcpforward
+package balancer
 
 import (
 	"encoding/json"
@@ -7,8 +7,10 @@ import (
 	"net"
 	"net/http"
 	"sync"
-	"github.com/abiosoft/dockward/util"
 )
+
+// TODO make dynamic
+const EndpointPort = 9923
 
 type Message struct {
 	Endpoint Endpoint
@@ -20,6 +22,13 @@ type Balancer struct {
 	Endpoints Endpoints
 	Policy    Policy
 	sync.RWMutex
+}
+
+func New(port int, endpoints Endpoints) *Balancer {
+	return &Balancer{
+		Port:      port,
+		Endpoints: endpoints,
+	}
 }
 
 func (b *Balancer) Start(stop chan struct{}) error {
@@ -71,36 +80,29 @@ func (b *Balancer) Select(e Endpoints) Endpoint {
 	return b.Policy.Select(e)
 }
 
-func (b *Balancer) ListenForEndpoints() (int, error) {
-	port, err := util.RandomPort()
-	if err != nil {
-		return port, err
-	}
+func (b *Balancer) ListenForEndpoints(port int) {
+	handler := http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			var message Message
+			err := json.NewDecoder(r.Body).Decode(&message)
+			if r.Method != "POST" || err != nil {
+				http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+				return
+			}
 
-	go func() {
-		err := http.ListenAndServe(":"+fmt.Sprint(port),
-			http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				var message Message
-				err := json.NewDecoder(r.Body).Decode(&message)
-				if err != nil {
-					http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-					return
-				}
+			b.Lock()
+			if message.Remove {
+				b.Endpoints.Delete(message.Endpoint.Ip)
+			} else {
+				b.Endpoints.Add(message.Endpoint)
+			}
+			b.Unlock()
 
-				b.Lock()
-				if message.Remove {
-					b.Endpoints.Delete(message.Endpoint.Id)
-				} else {
-					b.Endpoints.Add(message.Endpoint)
-				}
-				b.Unlock()
+			w.WriteHeader(200)
+		})
 
-				w.WriteHeader(200)
-			}))
+	err := http.ListenAndServe(":"+fmt.Sprint(port), handler)
 
-		// should not get here
-		log.Println(err)
-	}()
-
-	return port, err
+	// should not get here
+	log.Println(err)
 }

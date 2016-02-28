@@ -1,4 +1,4 @@
-package tcpforward
+package balancer
 
 import (
 	"fmt"
@@ -32,6 +32,9 @@ func handle(conn net.Conn, dest string) {
 	client, err := net.Dial("tcp", dest)
 	if err != nil {
 		log.Println(err)
+		if err := conn.Close(); err != nil {
+			log.Println(err)
+		}
 		return
 	}
 	var w sync.WaitGroup
