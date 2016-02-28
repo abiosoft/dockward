@@ -6,14 +6,6 @@ import (
 	"github.com/docker/engine-api/types/filters"
 )
 
-func endpointsFromArgs(dests ...string) balancer.Endpoints {
-	endpoints := make(balancer.Endpoints, len(dests))
-	for i, d := range dests {
-		endpoints[i] = balancer.ParseEndpoint(d)
-	}
-	return endpoints
-}
-
 func endpointsFromLabel(containerPort int, label string) (balancer.Endpoints, error) {
 	return endpointsFromFilter(containerPort, "label", label)
 }

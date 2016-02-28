@@ -38,20 +38,26 @@ func forwardToBalancer(hostPort int, dests ...string) error {
 }
 
 func createBalancerContainer(hostPort int, monitorPort int, dests ...string) error {
+	hPort := nat.Port(fmt.Sprintf("%d/tcp", hostPort))
+	mPort := nat.Port(fmt.Sprintf("%d/tcp", monitorPort))
 	resp, err := client.ContainerCreate(
 		&container.Config{
 			Image: AppName,
-			Cmd:   append(strslice.StrSlice{fmt.Sprint(hostPort), "-host"}, strslice.StrSlice(dests)...),
+			Cmd:   append(strslice.StrSlice{fmt.Sprint(hostPort), "--host"}, strslice.StrSlice(dests)...),
+			ExposedPorts: map[nat.Port]struct{}{
+				hPort: struct{}{},
+				mPort: struct{}{},
+			},
 		},
 		&container.HostConfig{
 			PortBindings: nat.PortMap{
-				nat.Port(hostPort): []nat.PortBinding{
+				hPort: []nat.PortBinding{
 					nat.PortBinding{
 						HostIP: "0.0.0.0", HostPort: fmt.Sprint(hostPort),
 					},
 				},
-				// endpoints
-				nat.Port(fmt.Sprint(monitorPort)): []nat.PortBinding{
+				// endpoints update port
+				mPort: []nat.PortBinding{
 					nat.PortBinding{
 						HostIP: "0.0.0.0", HostPort: fmt.Sprint(balancer.EndpointPort),
 					},
@@ -64,6 +70,10 @@ func createBalancerContainer(hostPort int, monitorPort int, dests ...string) err
 
 	err = dockwardNetwork.ConnectContainer(dockwardContainerId)
 	exitIfErr(err)
+
+	err = client.ContainerStart(dockwardContainerId)
+	exitIfErr(err)
+
 	addCleanUpFunc(func() {
 		client.ContainerKill(dockwardContainerId, "")
 	})
