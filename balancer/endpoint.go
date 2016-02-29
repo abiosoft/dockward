@@ -16,7 +16,7 @@ type Endpoint struct {
 
 func ParseEndpoint(addr string) Endpoint {
 	// assume addr as host, port as 80
-	ip, port, id := addr, 80, util.RandChars(10)
+	ip, port, id := addr, 80, util.RandomChars(10)
 
 	// if its valid port, assume as port, host as 127.0.0.1
 	if p, err := strconv.Atoi(addr); err == nil {

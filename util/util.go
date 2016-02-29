@@ -19,7 +19,7 @@ func RandomPort() (int, error) {
 
 const alphaNum = "abcdefghijklmnopqrstuvwxyz0123456789"
 
-func RandChars(n int) string {
+func RandomChars(n int) string {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	s := ""
 	for i := 0; i < n; i++ {
