@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"github.com/abiosoft/dockward/balancer"
 	"github.com/abiosoft/dockward/util"
+	"strings"
 )
 
-func forwardToHost(hostPort int, dests ...string) error {
-	endpoints := make(balancer.Endpoints, len(dests))
-	for i, dest := range dests {
-		endpoints[i] = balancer.ParseEndpoint(dest)
+func forwardToHost(args cliArgs) error {
+	fmt.Println("Forwarding", args.HostPort, "to", strings.Join(args.Endpoints, ", "))
+	endpoints := make(balancer.Endpoints, len(args.Endpoints))
+	for i, endpoint := range args.Endpoints {
+		endpoints[i] = balancer.ParseEndpoint(endpoint)
 	}
 
-	lb := balancer.New(hostPort, endpoints)
+	lb := balancer.New(args.HostPort, endpoints)
 
 	go lb.ListenForEndpoints(balancer.EndpointPort)
 
@@ -41,7 +43,7 @@ func forwardToDocker(args cliArgs) {
 	endpointPort, err := util.RandomPort()
 	exitIfErr(err)
 
-	err = createBalancerContainer(args.HostPort, endpointPort, dests...)
+	err = launchBalancerContainer(args.HostPort, endpointPort, dests...)
 	exitIfErr(err)
 
 	if args.ContainerLabel == "" {

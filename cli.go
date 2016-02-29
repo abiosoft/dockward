@@ -89,3 +89,16 @@ func parseCli() cliArgs {
 	return args
 }
 
+func exitIfErr(err error) {
+	if err != nil {
+		exit(err)
+	}
+}
+
+func exit(err error) {
+	if err == nil {
+		os.Exit(0)
+	}
+	fmt.Println(err)
+	os.Exit(1)
+}

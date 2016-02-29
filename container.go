@@ -1,12 +1,17 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/abiosoft/dockward/balancer"
 	"github.com/docker/engine-api/types/container"
 	"github.com/docker/engine-api/types/strslice"
 	"github.com/docker/go-connections/nat"
+)
+
+var (
+	errNetworkNotFound  = errors.New("Error: Network not found. Consider restarting dockward.")
 )
 
 func ipFromContainer(name string) (string, error) {
@@ -20,53 +25,57 @@ func ipFromContainer(name string) (string, error) {
 	return "", errNetworkNotFound
 }
 
-func connectContainer(name string) error {
-	return dockwardNetwork.ConnectContainer(name)
+func connectContainer(id string) error {
+	return dockwardNetwork.ConnectContainer(id)
 }
 
-func disconnectContainer(name string) error {
-	return dockwardNetwork.DisconnectContainer(name)
+func disconnectContainer(id string) error {
+	return dockwardNetwork.DisconnectContainer(id)
 }
 
-func createBalancerContainer(hostPort int, monitorPort int, dests ...string) error {
+func launchBalancerContainer(hostPort int, monitorPort int, dests ...string) error {
 	hPort := nat.Port(fmt.Sprintf("%d/tcp", hostPort))
 	mPort := nat.Port(fmt.Sprintf("%d/tcp", balancer.EndpointPort))
-	resp, err := client.ContainerCreate(
-		&container.Config{
-			Image: AppName,
-			Cmd:   append(strslice.StrSlice{fmt.Sprint(hostPort), "--host"}, strslice.StrSlice(dests)...),
-			ExposedPorts: map[nat.Port]struct{}{
-				hPort: struct{}{},
-				mPort: struct{}{},
+	command := append(strslice.StrSlice{fmt.Sprint(hostPort), "--host"}, strslice.StrSlice(dests)...)
+	containerConf := &container.Config{
+		Image: AppName,
+		Cmd:   command,
+		ExposedPorts: map[nat.Port]struct{}{
+			hPort: struct{}{},
+			mPort: struct{}{},
+		},
+	}
+	hostConf := &container.HostConfig{
+		PortBindings: nat.PortMap{
+			hPort: []nat.PortBinding{
+				nat.PortBinding{
+					HostIP: "0.0.0.0", HostPort: fmt.Sprint(hostPort),
+				},
+			},
+			// endpoints update port
+			mPort: []nat.PortBinding{
+				nat.PortBinding{
+					HostIP: "0.0.0.0", HostPort: fmt.Sprint(monitorPort),
+				},
 			},
 		},
-		&container.HostConfig{
-			PortBindings: nat.PortMap{
-				hPort: []nat.PortBinding{
-					nat.PortBinding{
-						HostIP: "0.0.0.0", HostPort: fmt.Sprint(hostPort),
-					},
-				},
-				// endpoints update port
-				mPort: []nat.PortBinding{
-					nat.PortBinding{
-						HostIP: "0.0.0.0", HostPort: fmt.Sprint(monitorPort),
-					},
-				},
-			},
-		}, nil, "")
+	}
 
-	exitIfErr(err)
-	dockwardContainerId = resp.ID
+	resp, err := client.ContainerCreate(containerConf, hostConf, nil, "")
+	if err != nil {
+		return err
+	}
 
-	err = dockwardNetwork.ConnectContainer(dockwardContainerId)
-	exitIfErr(err)
+	if err := connectContainer(resp.ID); err != nil {
+		return err
+	}
 
-	err = client.ContainerStart(dockwardContainerId)
-	exitIfErr(err)
+	if err := client.ContainerStart(resp.ID); err != nil {
+		return err
+	}
 
 	addCleanUpFunc(func() {
-		client.ContainerKill(dockwardContainerId, "")
+		client.ContainerKill(resp.ID, "")
 	})
 
 	return err

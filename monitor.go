@@ -44,11 +44,9 @@ eventLoop:
 			continue
 		}
 		if e.Type != Container {
-			log.Println("Not container event, ignoring...")
 			continue
 		}
 		if !validContainer(e.Id, label) {
-			log.Println("Container do not have label", label, "ignoring...")
 			continue
 		}
 
