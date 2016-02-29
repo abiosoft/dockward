@@ -6,105 +6,126 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
+	"strings"
 )
 
 const (
 	AppName = "dockward"
 	Version = "0.0.1"
-	Usage   = `Usage: dockward command [options] [host endpoints...]
-
-command: one of port|help|version
-  port         Port to listen on. e.g. 80
-  help         Show this help.
-  version      Show version.
+	Usage = `Usage: dockward [options...] <port> [<container port> <filter>] [endpoints...]
+try 'dockward --help' for more.
+`
+	FullUsage   = `Usage: dockward [options...] <port> [<container port> <filter>] [endpoints...]
 
 options:
-  --name=""    Container name.
-  --id=""      Container id.
-  --label=""   Container label e.g. com.myorg.key=value.
-  --host=false Host mode, forward to host endpoints instead of container.
+  --host=false         Host mode, forward to host endpoints instead of container.
+  --docker-host=""     Ip address of docker host if this machine is not docker host.
+                       For monitoring and adding/removing filtered containers.
+  -h, --help=false     Show this help.
+  -v, --version=false  Show version.
 
-host endpoints:
-  Endpoints to forward to. Requires --host.
+port:
+  port to listen on. e.g. 8080
+
+container port:
+  port to forward to inside in the container. Defaults to <port>.
+
+filter:
+  Containers' filter. Supports id, name, label.
+  e.g. id=749bdeaf6920, name=amazing_leavitt, label=com.myorg.key=value.
+
+endpoints:
+  port, ip/host or ip/host:port to forward to. Requires --host.
 
 `
 )
 
 type cliConf struct {
-	HostPort       int
-	ContainerPort  int
-	ContainerName  string
-	ContainerId    string
-	ContainerLabel string
-	Host           bool
-	Endpoints      []string
-	Monitor        bool
-	DockerHost     string
+	HostPort      int
+	ContainerPort int
+	Filter        string
+	FilterValue   string
+	Host          bool
+	Endpoints     []string
+	DockerHost    string
 
-	containerFilter containerFilterType
+	Help    bool
+	Version bool
 }
 
 func usageErr(err error) {
-	exit(fmt.Errorf("%v\n\n%v", err, Usage))
+	exit(fmt.Errorf("dockward: %v\n%v", err, Usage))
 }
 
 func parseCli() cliConf {
-	if len(os.Args) == 1 {
-		usageErr(fmt.Errorf("Command missing"))
-	}
-
-	switch os.Args[1] {
-	case "help":
-		fmt.Println(Usage)
-		exit(nil)
-	case "version":
-		fmt.Println("dockward version", Version)
-		exit(nil)
-	}
-	hostPort, err := strconv.Atoi(os.Args[1])
-	if err != nil {
-		usageErr(err)
-	}
-
-	conf := cliConf{HostPort: hostPort}
+	conf := cliConf{}
 
 	fs := flag.FlagSet{}
 	fs.SetOutput(ioutil.Discard)
 
 	fs.BoolVar(&conf.Host, "host", conf.Host, "")
-	fs.StringVar(&conf.ContainerId, "id", conf.ContainerId, "")
-	fs.StringVar(&conf.ContainerName, "name", conf.ContainerName, "")
-	fs.StringVar(&conf.ContainerLabel, "label", conf.ContainerLabel, "")
+	fs.StringVar(&conf.DockerHost, "docker-host", conf.DockerHost, "")
+	fs.BoolVar(&conf.Help, "h", conf.Help, "")
+	fs.BoolVar(&conf.Help, "help", conf.Help, "")
+	fs.BoolVar(&conf.Version, "v", conf.Help, "")
+	fs.BoolVar(&conf.Version, "version", conf.Help, "")
 
-	err = fs.Parse(os.Args[2:])
+	err := fs.Parse(os.Args[1:])
 	exitIfErr(err)
+
+	if conf.Help {
+		fmt.Println(FullUsage)
+		exit(nil)
+	}
+	if conf.Version {
+		fmt.Println("dockward version", Version)
+		exit(nil)
+	}
+
+	switch fs.NArg() {
+	case 0:
+		usageErr(fmt.Errorf("port missing."))
+	case 1:
+		usageErr(fmt.Errorf("filter or endpoint missing."))
+	}
+
+	args := fs.Args()
+
+	conf.HostPort, err = strconv.Atoi(args[0])
+	if err != nil {
+		usageErr(err)
+	}
 
 	// if not host mode, require one container param.
 	if !conf.Host {
-		if conf.ContainerId == "" && conf.ContainerLabel == "" && conf.ContainerName == "" {
-			usageErr(fmt.Errorf("One of container id, name or label is required."))
+		var filterArg string
+		if len(args) > 2 {
+			conf.ContainerPort, err = strconv.Atoi(args[1])
+			if err != nil {
+				usageErr(err)
+			}
+			filterArg = args[2]
+		} else {
+			conf.ContainerPort = conf.HostPort
+			filterArg = args[1]
 		}
-		filters := 0
-		if conf.ContainerId != "" {
-			conf.containerFilter = idFilter
-			filters++
+
+		str := strings.SplitN(filterArg, "=", 2)
+		if len(str) != 2 {
+			usageErr(fmt.Errorf("Invalid filter."))
 		}
-		if conf.ContainerName != "" {
-			conf.containerFilter = nameFilter
-			filters++
+
+		conf.Filter, conf.FilterValue = str[0], str[1]
+
+		switch conf.Filter {
+		case "id", "name", "label":
+		default:
+			usageErr(fmt.Errorf("Invalid filter %s", conf.Filter))
 		}
-		if conf.ContainerLabel != "" {
-			conf.containerFilter = labelFilter
-			filters++
-		}
-		if filters > 1 {
-			usageErr(fmt.Errorf("Only one of container id, name or label is required"))
-		}
+
 	} else {
 		// if host mode, load endpoints.
-		if fs.NArg() > 0 {
-			conf.Endpoints = fs.Args()
-		}
+		conf.Endpoints = args[1:]
 	}
 
 	return conf

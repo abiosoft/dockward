@@ -6,25 +6,13 @@ import (
 	"github.com/docker/engine-api/types/filters"
 )
 
-type containerFilterType int8
+type filterType string
 
 const (
-	idFilter containerFilterType = iota + 1
-	nameFilter
-	labelFilter
+	idFilter    filterType = "id"
+	nameFilter  filterType = "name"
+	labelFilter filterType = "label"
 )
-
-func containerFilter(args cliConf) (key, value string) {
-	switch args.containerFilter {
-	case idFilter:
-		return "id", args.ContainerId
-	case nameFilter:
-		return "name", args.ContainerName
-	case labelFilter:
-		return "label", args.ContainerLabel
-	}
-	return "", ""
-}
 
 func endpointsFromFilter(containerPort int, key, value string) (balancer.Endpoints, error) {
 	filter := filters.NewArgs()
@@ -38,7 +26,7 @@ func endpointsFromFilter(containerPort int, key, value string) (balancer.Endpoin
 		if err := connectContainer(c.ID); err != nil {
 			return nil, err
 		}
-		ip, err := ipFromContainer(c.ID)
+		ip, err := containerIp(c.ID)
 		if err != nil {
 			return nil, err
 		}

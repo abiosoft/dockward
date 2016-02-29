@@ -58,6 +58,14 @@ func (e Endpoints) Len() int {
 	return len(e)
 }
 
+func (e Endpoints) Addrs() []string {
+	addrs := make([]string, e.Len())
+	for i := range e {
+		addrs[i] = e[i].Addr()
+	}
+	return addrs
+}
+
 func (e *Endpoints) Add(ep Endpoint) {
 	for i, endpoint := range *e {
 		if endpoint.Id == ep.Id {

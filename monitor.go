@@ -29,7 +29,7 @@ type Event struct {
 	}
 }
 
-func monitor(endpointPort int, containerPort int, label string) {
+func monitor(endpointPort int, containerPort int, label, dockerHost string) {
 	resp, err := client.Events(context.Background(), types.EventsOptions{})
 	exitIfErr(err)
 
@@ -70,7 +70,7 @@ eventLoop:
 				log.Println(err)
 				continue eventLoop
 			}
-			ip, err := ipFromContainer(e.Id)
+			ip, err := containerIp(e.Id)
 			if err != nil {
 				log.Println(err)
 				continue
@@ -80,7 +80,10 @@ eventLoop:
 			continue eventLoop
 		}
 
-		url := "http://127.0.0.1:" + fmt.Sprint(endpointPort)
+		url := fmt.Sprintf("http://127.0.0.1:%d", endpointPort)
+		if dockerHost != "" {
+			url = fmt.Sprintf("http://%s:%d", dockerHost, endpointPort)
+		}
 		body := bytes.NewBuffer(nil)
 		if err := json.NewEncoder(body).Encode(&msg); err != nil {
 			log.Println(err)
@@ -89,6 +92,7 @@ eventLoop:
 		resp, err := http.Post(url, "application/json", body)
 		if err != nil {
 			log.Println(err)
+			log.Println("Set --docker-host flag to fix this.")
 			continue
 		}
 		if resp.StatusCode != 200 {

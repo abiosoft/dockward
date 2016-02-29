@@ -18,35 +18,29 @@ func forwardToHost(args cliConf) error {
 
 	go lb.ListenForEndpoints(balancer.EndpointPort)
 
-	fmt.Println("Forwarding", args.HostPort, "to", strings.Join(args.Endpoints, ", "))
+	fmt.Println("Forwarding", args.HostPort, "to", strings.Join(endpoints.Addrs(), ", "))
 	return lb.Start(nil)
 }
 
 func forwardToDocker(args cliConf) {
-	key, val := containerFilter(args)
-	if key == "" || val == "" {
-		exit(fmt.Errorf("Missing container parameters."))
-	}
-
-	endpoints, err := endpointsFromFilter(args.HostPort, key, val)
+	endpoints, err := endpointsFromFilter(args.ContainerPort, args.Filter, args.FilterValue)
 	exitIfErr(err)
 
-	dests := make([]string, len(endpoints))
+	destinations := make([]string, len(endpoints))
 	for i, e := range endpoints {
-		dests[i] = e.String()
+		destinations[i] = e.String()
 	}
 
 	endpointPort, err := util.RandomPort()
 	exitIfErr(err)
 
-	err = launchBalancerContainer(args.HostPort, endpointPort, dests...)
+	err = launchBalancerContainer(args.HostPort, endpointPort, destinations...)
 	exitIfErr(err)
 
-	if args.ContainerLabel == "" {
-		fmt.Println("Forwarding", args.HostPort, "to container", args.ContainerName+args.ContainerId)
-		return
+	if args.Filter == string(labelFilter) {
+		go monitor(endpointPort, args.HostPort, args.FilterValue, args.DockerHost)
+		fmt.Println("Forwarding", args.HostPort, "to", args.ContainerPort, "in containers with label="+args.FilterValue)
+	} else {
+		fmt.Println("Forwarding", args.HostPort, "to", args.ContainerPort, "in container", args.FilterValue)
 	}
-
-	go monitor(endpointPort, args.HostPort, args.ContainerLabel)
-	fmt.Println("Forwarding", args.HostPort, "to containers with label="+args.ContainerLabel)
 }
