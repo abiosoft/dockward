@@ -80,9 +80,9 @@ func (e *Endpoints) Delete(id string) {
 	if pos == -1 {
 		return
 	}
-	part := (*e)[:pos]
-	if pos < len(*e)-1 {
-		part = append(part, (*e)[pos+1:]...)
+	if pos == len(*e)-1 {
+		*e = (*e)[:pos]
+		return
 	}
-	*e = part
+	*e = append((*e)[:pos], (*e)[pos+1:]...)
 }

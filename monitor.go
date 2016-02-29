@@ -84,7 +84,6 @@ eventLoop:
 
 		url := "http://127.0.0.1:" + fmt.Sprint(endpointPort)
 		body := bytes.NewBuffer(nil)
-		fmt.Println(msg)
 		if err := json.NewEncoder(body).Encode(&msg); err != nil {
 			log.Println(err)
 			continue
