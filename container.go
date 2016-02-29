@@ -28,19 +28,6 @@ func disconnectContainer(name string) error {
 	return dockwardNetwork.DisconnectContainer(name)
 }
 
-func forwardToBalancer(hostPort int, dests ...string) error {
-	endpoints := make(balancer.Endpoints, len(dests))
-	for i, dest := range dests {
-		endpoints[i] = balancer.ParseEndpoint(dest)
-	}
-
-	lb := balancer.New(hostPort, endpoints)
-
-	go lb.ListenForEndpoints(balancer.EndpointPort)
-
-	return lb.Start(nil)
-}
-
 func createBalancerContainer(hostPort int, monitorPort int, dests ...string) error {
 	hPort := nat.Port(fmt.Sprintf("%d/tcp", hostPort))
 	mPort := nat.Port(fmt.Sprintf("%d/tcp", balancer.EndpointPort))

@@ -8,6 +8,28 @@ import (
 	"strconv"
 )
 
+const (
+	AppName = "dockward"
+	Version = "0.0.1"
+	Usage   = `Usage: dockward command [options] [host endpoints...]
+
+command: one of port|help|version
+  port         Port to listen on. e.g. 80
+  help         Show this help.
+  version      Show version.
+
+options:
+  --name=""    Container name.
+  --id=""      Container id.
+  --label=""   Container label e.g. com.myorg.key=value.
+  --host=false Host mode, forward to host endpoints instead of container.
+
+host endpoints:
+  Endpoints to forward to. Requires --host.
+
+`
+)
+
 type cliArgs struct {
 	HostPort       int
 	ContainerName  string

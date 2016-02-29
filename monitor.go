@@ -61,7 +61,7 @@ eventLoop:
 		switch e.Status {
 		case Die:
 			msg.Remove = true
-			err = dockwardNetwork.DisconnectContainer(e.Id)
+			err = disconnectContainer(e.Id)
 			if err != nil {
 				log.Println(err)
 				continue eventLoop
