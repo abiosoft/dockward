@@ -6,16 +6,24 @@ import (
 	"github.com/docker/engine-api/types/filters"
 )
 
-func endpointsFromLabel(containerPort int, label string) (balancer.Endpoints, error) {
-	return endpointsFromFilter(containerPort, "label", label)
-}
+type containerFilterType int8
 
-func endpointsFromName(containerPort int, name string) (balancer.Endpoints, error) {
-	return endpointsFromFilter(containerPort, "name", name)
-}
+const (
+	idFilter containerFilterType = iota + 1
+	nameFilter
+	labelFilter
+)
 
-func endpointsFromId(containerPort int, id string) (balancer.Endpoints, error) {
-	return endpointsFromFilter(containerPort, "id", id)
+func containerFilter(e containerFilterType) (key, value string) {
+	switch e {
+	case idFilter:
+		return "id", string(e)
+	case nameFilter:
+		return "name", string(e)
+	case labelFilter:
+		return "label", string(e)
+	}
+	return "", ""
 }
 
 func endpointsFromFilter(containerPort int, key, value string) (balancer.Endpoints, error) {

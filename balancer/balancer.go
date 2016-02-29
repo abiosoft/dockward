@@ -64,7 +64,7 @@ func (b *Balancer) Start(stop chan struct{}) error {
 		endpoint := b.Select(b.Endpoints)
 
 		// handle request
-		go handle(conn, endpoint.Addr())
+		go handleConn(conn, endpoint.Addr())
 	}
 
 	return nil

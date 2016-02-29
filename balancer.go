@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/abiosoft/dockward/balancer"
 	"github.com/abiosoft/dockward/util"
-	"strings"
 )
 
 func forwardToHost(args cliArgs) error {
-	fmt.Println("Forwarding", args.HostPort, "to", strings.Join(args.Endpoints, ", "))
 	endpoints := make(balancer.Endpoints, len(args.Endpoints))
 	for i, endpoint := range args.Endpoints {
 		endpoints[i] = balancer.ParseEndpoint(endpoint)
@@ -18,21 +18,17 @@ func forwardToHost(args cliArgs) error {
 
 	go lb.ListenForEndpoints(balancer.EndpointPort)
 
+	fmt.Println("Forwarding", args.HostPort, "to", strings.Join(args.Endpoints, ", "))
 	return lb.Start(nil)
 }
 
 func forwardToDocker(args cliArgs) {
-	var endpoints balancer.Endpoints
-	var err error
-	if args.ContainerLabel != "" {
-		endpoints, err = endpointsFromLabel(args.HostPort, args.ContainerLabel)
-	} else if args.ContainerName != "" {
-		endpoints, err = endpointsFromName(args.HostPort, args.ContainerName)
-	} else if args.ContainerId != "" {
-		endpoints, err = endpointsFromId(args.HostPort, args.ContainerId)
-	} else {
-		err = fmt.Errorf("Missing container parameters")
+	key, val := containerFilter(args.containerFilter)
+	if key == "" || val == "" {
+		exit(fmt.Errorf("Missing container parameters."))
 	}
+
+	endpoints, err := endpointsFromFilter(args.HostPort, key, val)
 	exitIfErr(err)
 
 	dests := make([]string, len(endpoints))
@@ -49,7 +45,6 @@ func forwardToDocker(args cliArgs) {
 	if args.ContainerLabel == "" {
 		fmt.Println("Forwarding", args.HostPort, "to container", args.ContainerName+args.ContainerId)
 		return
-
 	}
 
 	go monitor(endpointPort, args.HostPort, args.ContainerLabel)

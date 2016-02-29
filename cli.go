@@ -37,6 +37,8 @@ type cliArgs struct {
 	ContainerLabel string
 	Host           bool
 	Endpoints      []string
+
+	containerFilter containerFilterType
 }
 
 func usageErr(err error) {
@@ -72,20 +74,36 @@ func parseCli() cliArgs {
 	fs.StringVar(&args.ContainerLabel, "label", args.ContainerLabel, "")
 
 	err = fs.Parse(os.Args[2:])
-	if err != nil {
-		exit(err)
-	}
+	exitIfErr(err)
 
-	// if not host mode, require a container param.
+	// if not host mode, require one container param.
 	if !args.Host {
 		if args.ContainerId == "" && args.ContainerLabel == "" && args.ContainerName == "" {
-			exit(fmt.Errorf("One of container id, name or label is required."))
+			usageErr(fmt.Errorf("One of container id, name or label is required."))
+		}
+		filters := 0
+		if args.ContainerId != "" {
+			args.containerFilter = idFilter
+			filters++
+		}
+		if args.ContainerName != "" {
+			args.containerFilter = nameFilter
+			filters++
+		}
+		if args.ContainerLabel != "" {
+			args.containerFilter = labelFilter
+			filters++
+		}
+		if filters > 1 {
+			usageErr(fmt.Errorf("Only one of container id, name or label is required"))
+		}
+	} else {
+		// if host mode, load endpoints.
+		if fs.NArg() > 0 {
+			args.Endpoints = fs.Args()
 		}
 	}
 
-	if fs.NArg() > 0 {
-		args.Endpoints = fs.Args()
-	}
 	return args
 }
 

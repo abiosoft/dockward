@@ -1,9 +1,10 @@
 package main
+
 import (
-	"os/signal"
 	"fmt"
-	"syscall"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 // trapInterrupts traps OS interrupt signals.
