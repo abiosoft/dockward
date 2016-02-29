@@ -10,9 +10,9 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-var (
-	errNetworkNotFound = errors.New("Error: Network not found. Consider restarting dockward.")
-)
+const ImageName = "abiosoft/dockward"
+
+var errNetworkNotFound = errors.New("Error: Network not found. Consider restarting dockward.")
 
 func containerIp(id string) (string, error) {
 	info, err := client.ContainerInspect(id)
@@ -46,7 +46,7 @@ func launchBalancerContainer(hostPort int, monitorPort int, policy string, desti
 		strslice.StrSlice(destinations)...,
 	)
 	containerConf := &container.Config{
-		Image: AppName,
+		Image: ImageName,
 		Cmd:   command,
 		ExposedPorts: map[nat.Port]struct{}{
 			hPort: struct{}{},
