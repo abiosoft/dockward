@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 )
 
@@ -24,10 +25,23 @@ type Balancer struct {
 	sync.RWMutex
 }
 
-func New(port int, endpoints Endpoints) *Balancer {
+func New(port int, endpoints Endpoints, policy string) *Balancer {
+	var p Policy
+
+	switch strings.ToLower(policy) {
+	case "round_robin":
+		p = &RoundRobin{}
+	case "random":
+		p = Random{}
+	default:
+		log.Println("Defaulting to random. Unknown scheduling policy", policy)
+		p = Random{}
+	}
+
 	return &Balancer{
 		Port:      port,
 		Endpoints: endpoints,
+		Policy:    p,
 	}
 }
 

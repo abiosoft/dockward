@@ -14,7 +14,7 @@ func forwardToHost(args cliConf) error {
 		endpoints[i] = balancer.ParseEndpoint(endpoint)
 	}
 
-	lb := balancer.New(args.HostPort, endpoints)
+	lb := balancer.New(args.HostPort, endpoints, args.Policy)
 
 	go lb.ListenForEndpoints(balancer.EndpointPort)
 
@@ -34,11 +34,11 @@ func forwardToDocker(args cliConf) {
 	endpointPort, err := util.RandomPort()
 	exitIfErr(err)
 
-	err = launchBalancerContainer(args.HostPort, endpointPort, destinations...)
+	err = launchBalancerContainer(args.HostPort, endpointPort, args.Policy, destinations...)
 	exitIfErr(err)
 
 	if args.Filter == string(labelFilter) {
-		go monitor(endpointPort, args.HostPort, args.FilterValue, args.DockerHost)
+		go monitor(endpointPort, args.ContainerPort, args.FilterValue, args.DockerHost)
 		fmt.Println("Forwarding", args.HostPort, "to", args.ContainerPort, "in containers with label="+args.FilterValue)
 	} else {
 		fmt.Println("Forwarding", args.HostPort, "to", args.ContainerPort, "in container", args.FilterValue)

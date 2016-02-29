@@ -2,6 +2,7 @@ package balancer
 
 import (
 	"math/rand"
+	"sync/atomic"
 	"time"
 )
 
@@ -13,6 +14,10 @@ type Policy interface {
 // Random is a random policy.
 type Random struct{}
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 // Select satisfies Policy.
 func (r Random) Select(e Endpoints) Endpoint {
 	if len(e) == 0 {
@@ -21,6 +26,14 @@ func (r Random) Select(e Endpoints) Endpoint {
 	return e[rand.Int()%len(e)]
 }
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
+type RoundRobin struct {
+	count uint32
+}
+
+func (r *RoundRobin) Select(e Endpoints) Endpoint {
+	if len(e) == 0 {
+		return Endpoint{}
+	}
+	i := atomic.AddUint32(&r.count, 1) % uint32(len(e))
+	return e[i]
 }

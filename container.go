@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	errNetworkNotFound  = errors.New("Error: Network not found. Consider restarting dockward.")
+	errNetworkNotFound = errors.New("Error: Network not found. Consider restarting dockward.")
 )
 
 func containerIp(id string) (string, error) {
@@ -33,15 +33,17 @@ func disconnectContainer(id string) error {
 	return dockwardNetwork.DisconnectContainer(id)
 }
 
-func launchBalancerContainer(hostPort int, monitorPort int, destinations ...string) error {
+func launchBalancerContainer(hostPort int, monitorPort int, policy string, destinations ...string) error {
 	hPort := nat.Port(fmt.Sprintf("%d/tcp", hostPort))
 	mPort := nat.Port(fmt.Sprintf("%d/tcp", balancer.EndpointPort))
 	command := append(
 		strslice.StrSlice{
 			"--host",
+			"--policy",
+			policy,
 			fmt.Sprint(hostPort),
 		},
-		strslice.StrSlice(destinations)...
+		strslice.StrSlice(destinations)...,
 	)
 	containerConf := &container.Config{
 		Image: AppName,

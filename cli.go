@@ -12,15 +12,16 @@ import (
 const (
 	AppName = "dockward"
 	Version = "0.0.1"
-	Usage = `Usage: dockward [options...] <port> [<container port> <filter>] [endpoints...]
+	Usage   = `Usage: dockward [options...] <port> [<container port> <filter>] [endpoints...]
 try 'dockward --help' for more.
 `
-	FullUsage   = `Usage: dockward [options...] <port> [<container port> <filter>] [endpoints...]
+	FullUsage = `Usage: dockward [options...] <port> [<container port> <filter>] [endpoints...]
 
 options:
   --host=false         Host mode, forward to host endpoints instead of container.
   --docker-host=""     Ip address of docker host if this machine is not docker host.
                        For monitoring and adding/removing filtered containers.
+  --policy="random"    Load balancer scheduling policy. One of "random", "round_robin".
   -h, --help=false     Show this help.
   -v, --version=false  Show version.
 
@@ -48,6 +49,7 @@ type cliConf struct {
 	Host          bool
 	Endpoints     []string
 	DockerHost    string
+	Policy        string
 
 	Help    bool
 	Version bool
@@ -58,7 +60,7 @@ func usageErr(err error) {
 }
 
 func parseCli() cliConf {
-	conf := cliConf{}
+	conf := cliConf{Policy: "random"}
 
 	fs := flag.FlagSet{}
 	fs.SetOutput(ioutil.Discard)
@@ -67,8 +69,9 @@ func parseCli() cliConf {
 	fs.StringVar(&conf.DockerHost, "docker-host", conf.DockerHost, "")
 	fs.BoolVar(&conf.Help, "h", conf.Help, "")
 	fs.BoolVar(&conf.Help, "help", conf.Help, "")
-	fs.BoolVar(&conf.Version, "v", conf.Help, "")
-	fs.BoolVar(&conf.Version, "version", conf.Help, "")
+	fs.BoolVar(&conf.Version, "v", conf.Version, "")
+	fs.BoolVar(&conf.Version, "version", conf.Version, "")
+	fs.StringVar(&conf.Policy, "policy", conf.Policy, "")
 
 	err := fs.Parse(os.Args[1:])
 	exitIfErr(err)

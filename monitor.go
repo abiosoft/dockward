@@ -7,11 +7,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/abiosoft/dockward/balancer"
 	"github.com/docker/engine-api/types"
 	"golang.org/x/net/context"
-	"strings"
 )
 
 const (
