@@ -8,7 +8,7 @@ import (
 	"github.com/abiosoft/dockward/util"
 )
 
-func forwardToHost(args cliArgs) error {
+func forwardToHost(args cliConf) error {
 	endpoints := make(balancer.Endpoints, len(args.Endpoints))
 	for i, endpoint := range args.Endpoints {
 		endpoints[i] = balancer.ParseEndpoint(endpoint)
@@ -22,8 +22,8 @@ func forwardToHost(args cliArgs) error {
 	return lb.Start(nil)
 }
 
-func forwardToDocker(args cliArgs) {
-	key, val := containerFilter(args.containerFilter)
+func forwardToDocker(args cliConf) {
+	key, val := containerFilter(args)
 	if key == "" || val == "" {
 		exit(fmt.Errorf("Missing container parameters."))
 	}

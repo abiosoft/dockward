@@ -14,14 +14,14 @@ const (
 	labelFilter
 )
 
-func containerFilter(e containerFilterType) (key, value string) {
-	switch e {
+func containerFilter(args cliConf) (key, value string) {
+	switch args.containerFilter {
 	case idFilter:
-		return "id", string(e)
+		return "id", args.ContainerId
 	case nameFilter:
-		return "name", string(e)
+		return "name", args.ContainerName
 	case labelFilter:
-		return "label", string(e)
+		return "label", args.ContainerLabel
 	}
 	return "", ""
 }

@@ -30,13 +30,16 @@ host endpoints:
 `
 )
 
-type cliArgs struct {
+type cliConf struct {
 	HostPort       int
+	ContainerPort  int
 	ContainerName  string
 	ContainerId    string
 	ContainerLabel string
 	Host           bool
 	Endpoints      []string
+	Monitor        bool
+	DockerHost     string
 
 	containerFilter containerFilterType
 }
@@ -45,7 +48,7 @@ func usageErr(err error) {
 	exit(fmt.Errorf("%v\n\n%v", err, Usage))
 }
 
-func parseCli() cliArgs {
+func parseCli() cliConf {
 	if len(os.Args) == 1 {
 		usageErr(fmt.Errorf("Command missing"))
 	}
@@ -63,35 +66,35 @@ func parseCli() cliArgs {
 		usageErr(err)
 	}
 
-	args := cliArgs{HostPort: hostPort}
+	conf := cliConf{HostPort: hostPort}
 
 	fs := flag.FlagSet{}
 	fs.SetOutput(ioutil.Discard)
 
-	fs.BoolVar(&args.Host, "host", args.Host, "")
-	fs.StringVar(&args.ContainerId, "id", args.ContainerId, "")
-	fs.StringVar(&args.ContainerName, "name", args.ContainerName, "")
-	fs.StringVar(&args.ContainerLabel, "label", args.ContainerLabel, "")
+	fs.BoolVar(&conf.Host, "host", conf.Host, "")
+	fs.StringVar(&conf.ContainerId, "id", conf.ContainerId, "")
+	fs.StringVar(&conf.ContainerName, "name", conf.ContainerName, "")
+	fs.StringVar(&conf.ContainerLabel, "label", conf.ContainerLabel, "")
 
 	err = fs.Parse(os.Args[2:])
 	exitIfErr(err)
 
 	// if not host mode, require one container param.
-	if !args.Host {
-		if args.ContainerId == "" && args.ContainerLabel == "" && args.ContainerName == "" {
+	if !conf.Host {
+		if conf.ContainerId == "" && conf.ContainerLabel == "" && conf.ContainerName == "" {
 			usageErr(fmt.Errorf("One of container id, name or label is required."))
 		}
 		filters := 0
-		if args.ContainerId != "" {
-			args.containerFilter = idFilter
+		if conf.ContainerId != "" {
+			conf.containerFilter = idFilter
 			filters++
 		}
-		if args.ContainerName != "" {
-			args.containerFilter = nameFilter
+		if conf.ContainerName != "" {
+			conf.containerFilter = nameFilter
 			filters++
 		}
-		if args.ContainerLabel != "" {
-			args.containerFilter = labelFilter
+		if conf.ContainerLabel != "" {
+			conf.containerFilter = labelFilter
 			filters++
 		}
 		if filters > 1 {
@@ -100,11 +103,11 @@ func parseCli() cliArgs {
 	} else {
 		// if host mode, load endpoints.
 		if fs.NArg() > 0 {
-			args.Endpoints = fs.Args()
+			conf.Endpoints = fs.Args()
 		}
 	}
 
-	return args
+	return conf
 }
 
 func exitIfErr(err error) {

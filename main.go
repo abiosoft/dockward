@@ -1,15 +1,15 @@
 package main
 
 func main() {
-	args := parseCli()
+	conf := parseCli()
 
-	if args.Host {
-		forwardToHost(args)
+	if conf.Host {
+		forwardToHost(conf)
 		return
 	}
 
 	exitIfErr(setupDocker())
-	forwardToDocker(args)
+	forwardToDocker(conf)
 
 	<-trapInterrupts(nil)
 }
