@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"bytes"
@@ -15,9 +15,9 @@ import (
 )
 
 const (
-	Die       = "die"
-	Start     = "start"
-	Container = "container"
+	StatusDie       = "die"
+	StatusStart     = "start"
+	TypeContainer = "container"
 )
 
 type Event struct {
@@ -42,7 +42,7 @@ eventLoop:
 			log.Println(os.Stderr, err)
 			continue
 		}
-		if e.Type != Container {
+		if e.Type != TypeContainer {
 			continue
 		}
 		if !validContainer(e.Id, label) {
@@ -56,14 +56,14 @@ eventLoop:
 			},
 		}
 		switch e.Status {
-		case Die:
+		case StatusDie:
 			msg.Remove = true
 			err = disconnectContainer(e.Id)
 			if err != nil {
 				log.Println(err)
 				continue eventLoop
 			}
-		case Start:
+		case StatusStart:
 			err = connectContainer(e.Id)
 			if err != nil {
 				log.Println(err)
@@ -83,7 +83,7 @@ eventLoop:
 	}
 }
 
-func updateContainerEndpoints(msg balancer.Message, dockerHost, endpointPort string) {
+func updateContainerEndpoints(msg balancer.Message, dockerHost string, endpointPort int) {
 	url := fmt.Sprintf("http://127.0.0.1:%d", endpointPort)
 	if dockerHost != "" {
 		url = fmt.Sprintf("http://%s:%d", dockerHost, endpointPort)

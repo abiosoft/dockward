@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"fmt"
@@ -25,6 +25,11 @@ func forwardToHost(args cliConf) error {
 func forwardToDocker(args cliConf) {
 	endpoints, err := endpointsFromFilter(args.ContainerPort, args.Filter, args.FilterValue)
 	exitIfErr(err)
+
+	// if filter is not label, it has to exist.
+	if args.Filter != string(labelFilter) && endpoints.Len() == 0 {
+		exit(fmt.Errorf("Container with %s=%s not found.", args.Filter, args.FilterValue))
+	}
 
 	destinations := make([]string, len(endpoints))
 	for i, e := range endpoints {

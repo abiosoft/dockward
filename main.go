@@ -1,15 +1,7 @@
 package main
 
+import "github.com/abiosoft/dockward/cli"
+
 func main() {
-	conf := parseCli()
-
-	if conf.Host {
-		forwardToHost(conf)
-		return
-	}
-
-	exitIfErr(setupDocker())
-	forwardToDocker(conf)
-
-	<-trapInterrupts(nil)
+	cli.Start()
 }

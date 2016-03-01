@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"errors"
@@ -41,6 +41,7 @@ func launchBalancerContainer(hostPort int, monitorPort int, policy string, desti
 			"--host",
 			"--policy",
 			policy,
+			"--remote-client",
 			fmt.Sprint(hostPort),
 		},
 		strslice.StrSlice(destinations)...,

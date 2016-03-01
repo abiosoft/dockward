@@ -34,7 +34,7 @@ func New(port int, endpoints Endpoints, policy string) *Balancer {
 	case "random":
 		p = Random{}
 	default:
-		log.Println("Defaulting to random. Unknown scheduling policy", policy)
+		log.Println("Defaulting to random policy. Unknown scheduling policy", policy+".")
 		p = Random{}
 	}
 
@@ -71,6 +71,9 @@ func (b *Balancer) Start(stop chan struct{}) error {
 		// no endpoints
 		if b.Endpoints.Len() == 0 {
 			log.Println("No endpoints")
+			if err := conn.Close(); err != nil {
+				log.Println(err)
+			}
 			continue
 		}
 

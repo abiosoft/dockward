@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"flag"
@@ -51,8 +51,9 @@ type cliConf struct {
 	DockerHost    string
 	Policy        string
 
-	Help    bool
-	Version bool
+	Help         bool
+	Version      bool
+	remoteClient bool
 }
 
 func usageErr(err error) {
@@ -72,6 +73,7 @@ func parseCli() cliConf {
 	fs.BoolVar(&conf.Version, "v", conf.Version, "")
 	fs.BoolVar(&conf.Version, "version", conf.Version, "")
 	fs.StringVar(&conf.Policy, "policy", conf.Policy, "")
+	fs.BoolVar(&conf.remoteClient, "remote-client", conf.remoteClient, "")
 
 	err := fs.Parse(os.Args[1:])
 	exitIfErr(err)
@@ -89,7 +91,14 @@ func parseCli() cliConf {
 	case 0:
 		usageErr(fmt.Errorf("port missing."))
 	case 1:
-		usageErr(fmt.Errorf("filter or endpoint missing."))
+		if !conf.Host {
+			// docker mode
+			usageErr(fmt.Errorf("filter missing."))
+		} else if !conf.remoteClient {
+			// host mode
+			usageErr(fmt.Errorf("endpoint(s) missing."))
+		}
+
 	}
 
 	args := fs.Args()
