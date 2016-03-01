@@ -2,10 +2,10 @@
 
 Port forwarding tool for Docker containers. 
 
-Dockward can be used for
+Typical Dockward use cases include:
 * Port forwarding to containers without published ports.
 * Port forwarding to containers based on a filter.
-* Load balancing between multiple containers.
+* Testing stateless app scaled via docker-compose.
 
 ## Requirements
 Docker 1.10 and docker deamon running.
@@ -48,14 +48,6 @@ $ dockward --help
 ## Limitations
 * Dockward is intended for simple local development use cases. It may work for you outside of that.
 * Docker networks created are default settings i.e. bridge/overlay as the case may be. Nothing special.
-
-## Why this tool ?
-I wrote this to help with troubleshooting while developing.
-
-My 2 most common use cases:
-
-* Reaching a running container without published ports.
-* Testing stateless app scaled via docker-compose.
 
 ## Why the name ?
 Naming is hard, you know.

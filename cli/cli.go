@@ -11,7 +11,7 @@ import (
 
 const (
 	AppName = "dockward"
-	Version = "0.0.1"
+	Version = "0.0.2"
 	Usage   = `Usage: dockward [options...] <port> [<container port> <filter>] [endpoints...]
 try 'dockward --help' for more.
 `
