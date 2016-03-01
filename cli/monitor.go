@@ -29,8 +29,8 @@ type Event struct {
 	}
 }
 
-// monitor monitors docker containers, then add and remove from port forwarding
-// endpoints.
+// monitor monitors docker containers and add/remove from port forwarding
+// endpoints as required.
 func monitor(endpointPort int, containerPort int, label, dockerHost string) {
 	resp, err := client.Events(context.Background(), types.EventsOptions{})
 	exitIfErr(err)
