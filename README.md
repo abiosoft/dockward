@@ -8,7 +8,7 @@ Dockward can be used for
 * Load balancing between multiple containers.
 
 ## Requirements
-Docker and docker deamon running.
+Docker 1.10 and docker deamon running.
 
 ## Installation
 
