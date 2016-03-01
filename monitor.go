@@ -38,9 +38,8 @@ func monitor(endpointPort int, containerPort int, label, dockerHost string) {
 eventLoop:
 	for {
 		var e Event
-		err := decoder.Decode(&e)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
+		if err := decoder.Decode(&e); err != nil {
+			log.Println(os.Stderr, err)
 			continue
 		}
 		if e.Type != Container {
@@ -80,29 +79,33 @@ eventLoop:
 			continue eventLoop
 		}
 
-		url := fmt.Sprintf("http://127.0.0.1:%d", endpointPort)
-		if dockerHost != "" {
-			url = fmt.Sprintf("http://%s:%d", dockerHost, endpointPort)
-		}
-		body := bytes.NewBuffer(nil)
-		if err := json.NewEncoder(body).Encode(&msg); err != nil {
-			log.Println(err)
-			continue
-		}
-		resp, err := http.Post(url, "application/json", body)
-		if err != nil {
-			log.Println(err)
-			log.Println("Set --docker-host flag to fix this.")
-			continue
-		}
-		if resp.StatusCode != 200 {
-			log.Println("Failed:", resp.Status)
+		updateContainerEndpoints(msg, dockerHost, endpointPort)
+	}
+}
+
+func updateContainerEndpoints(msg balancer.Message, dockerHost, endpointPort string) {
+	url := fmt.Sprintf("http://127.0.0.1:%d", endpointPort)
+	if dockerHost != "" {
+		url = fmt.Sprintf("http://%s:%d", dockerHost, endpointPort)
+	}
+	body := bytes.NewBuffer(nil)
+	if err := json.NewEncoder(body).Encode(&msg); err != nil {
+		log.Println(err)
+		return
+	}
+	resp, err := http.Post(url, "application/json", body)
+	if err != nil {
+		log.Println(err)
+		log.Println("Set --docker-host flag to fix this.")
+		return
+	}
+	if resp.StatusCode != 200 {
+		log.Println("Failed:", resp.Status)
+	} else {
+		if msg.Remove {
+			log.Println("Removed", msg.Endpoint.Id, msg.Endpoint.Addr())
 		} else {
-			if msg.Remove {
-				log.Println("Removed", msg.Endpoint.Id, msg.Endpoint.Addr())
-			} else {
-				log.Println("Added", msg.Endpoint.Id, msg.Endpoint.Addr())
-			}
+			log.Println("Added", msg.Endpoint.Id, msg.Endpoint.Addr())
 		}
 	}
 }
