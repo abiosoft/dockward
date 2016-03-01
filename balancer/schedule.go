@@ -26,10 +26,12 @@ func (r Random) Select(e Endpoints) Endpoint {
 	return e[rand.Int()%len(e)]
 }
 
+// RoundRobin is a round robin policy.
 type RoundRobin struct {
 	count uint32
 }
 
+// Select satisfies Policy.
 func (r *RoundRobin) Select(e Endpoints) Endpoint {
 	if len(e) == 0 {
 		return Endpoint{}

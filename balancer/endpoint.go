@@ -8,12 +8,14 @@ import (
 	"github.com/abiosoft/dockward/util"
 )
 
+// Endpoint is a port forwarding endpoint.
 type Endpoint struct {
 	Id   string
 	Ip   string
 	Port int
 }
 
+// ParseEndpoint creates a new Endpoint from addr.
 func ParseEndpoint(addr string) Endpoint {
 	// assume addr as host, port as 80
 	ip, port, id := addr, 80, util.RandomChars(10)
@@ -44,20 +46,25 @@ func ParseEndpoint(addr string) Endpoint {
 	}
 }
 
+// Addr returns the address of the endpoint in the format ip:port.
 func (ep Endpoint) Addr() string {
 	return ep.Ip + ":" + fmt.Sprint(ep.Port)
 }
 
+// String returns string representation of the endpoint.
 func (ep Endpoint) String() string {
 	return ep.Addr() + ":" + ep.Id
 }
 
+// Endpoints is a list of Endpoint.
 type Endpoints []Endpoint
 
+// Len is the length of the list.
 func (e Endpoints) Len() int {
 	return len(e)
 }
 
+// Addrs returns the list of Addr of all endpoints in the list.
 func (e Endpoints) Addrs() []string {
 	addrs := make([]string, e.Len())
 	for i := range e {
@@ -66,6 +73,7 @@ func (e Endpoints) Addrs() []string {
 	return addrs
 }
 
+// Add adds ep to the list of endpoints.
 func (e *Endpoints) Add(ep Endpoint) {
 	for i, endpoint := range *e {
 		if endpoint.Id == ep.Id {
@@ -77,6 +85,7 @@ func (e *Endpoints) Add(ep Endpoint) {
 	*e = append(*e, ep)
 }
 
+// Delete deletes endpoint with id from the list of endpoints.
 func (e *Endpoints) Delete(id string) {
 	pos := -1
 	for i, ep := range *e {

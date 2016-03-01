@@ -56,10 +56,6 @@ type cliConf struct {
 	remoteClient bool
 }
 
-func usageErr(err error) {
-	exit(fmt.Errorf("dockward: %v\n%v", err, Usage))
-}
-
 func parseCli() cliConf {
 	conf := cliConf{Policy: "random"}
 
@@ -141,6 +137,10 @@ func parseCli() cliConf {
 	}
 
 	return conf
+}
+
+func usageErr(err error) {
+	exit(fmt.Errorf("dockward: %v\n%v", err, Usage))
 }
 
 func exitIfErr(err error) {

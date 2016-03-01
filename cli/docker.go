@@ -6,10 +6,11 @@ import (
 )
 
 var (
-	client              *docker.Client
-	dockwardNetwork     *network.Network
+	client          *docker.Client
+	dockwardNetwork *network.Network
 )
 
+// setupDocker connects to the docker daemon and creates a dockward network.
 func setupDocker() error {
 	var err error
 	if client, err = docker.NewEnvClient(); err != nil {

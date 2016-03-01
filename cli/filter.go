@@ -14,6 +14,8 @@ const (
 	labelFilter filterType = "label"
 )
 
+// endpointsFromFilter searches for containers with filter key and value, then create
+// endpoints from them.
 func endpointsFromFilter(containerPort int, key, value string) (balancer.Endpoints, error) {
 	filter := filters.NewArgs()
 	filter.Add(key, value)

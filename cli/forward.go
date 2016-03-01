@@ -8,6 +8,7 @@ import (
 	"github.com/abiosoft/dockward/util"
 )
 
+// forwardToHost does port forwarding to host endpoints.
 func forwardToHost(args cliConf) error {
 	endpoints := make(balancer.Endpoints, len(args.Endpoints))
 	for i, endpoint := range args.Endpoints {
@@ -22,6 +23,7 @@ func forwardToHost(args cliConf) error {
 	return lb.Start(nil)
 }
 
+// forwardToDocker does port forwarding to docker endpoints.
 func forwardToDocker(args cliConf) {
 	endpoints, err := endpointsFromFilter(args.ContainerPort, args.Filter, args.FilterValue)
 	exitIfErr(err)

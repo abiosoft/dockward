@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	StatusDie       = "die"
-	StatusStart     = "start"
+	StatusDie     = "die"
+	StatusStart   = "start"
 	TypeContainer = "container"
 )
 
@@ -29,6 +29,8 @@ type Event struct {
 	}
 }
 
+// monitor monitors docker containers, then add and remove from port forwarding
+// endpoints.
 func monitor(endpointPort int, containerPort int, label, dockerHost string) {
 	resp, err := client.Events(context.Background(), types.EventsOptions{})
 	exitIfErr(err)
@@ -83,6 +85,7 @@ eventLoop:
 	}
 }
 
+// updateContainerEndpoints updates the endpoints on the load balancer.
 func updateContainerEndpoints(msg balancer.Message, dockerHost string, endpointPort int) {
 	url := fmt.Sprintf("http://127.0.0.1:%d", endpointPort)
 	if dockerHost != "" {
@@ -110,6 +113,7 @@ func updateContainerEndpoints(msg balancer.Message, dockerHost string, endpointP
 	}
 }
 
+// validContainer validates if the container can be added/removed from endpoints.
 func validContainer(name string, label string) bool {
 	info, err := client.ContainerInspect(name)
 	if err != nil {

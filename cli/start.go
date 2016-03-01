@@ -1,6 +1,7 @@
 package cli
 
-func Start(){
+// Start  starts the cli application.
+func Start() {
 	conf := parseCli()
 
 	if conf.Host {

@@ -10,14 +10,17 @@ import (
 	"sync"
 )
 
+// Port is the port to listen for updates to endpoints.
 // TODO make dynamic
 const EndpointPort = 9923
 
+// Message is body for an endpoint update.
 type Message struct {
 	Endpoint Endpoint
 	Remove   bool
 }
 
+// Balancer is a load balancer.
 type Balancer struct {
 	Port      int
 	Endpoints Endpoints
@@ -25,6 +28,7 @@ type Balancer struct {
 	sync.RWMutex
 }
 
+// New creates a new Balancer.
 func New(port int, endpoints Endpoints, policy string) *Balancer {
 	var p Policy
 
@@ -45,6 +49,7 @@ func New(port int, endpoints Endpoints, policy string) *Balancer {
 	}
 }
 
+// Start starts b. This function blocks if start is successful.
 func (b *Balancer) Start(stop chan struct{}) error {
 	listener, err := net.Listen("tcp", ":"+fmt.Sprint(b.Port))
 	if err != nil {
@@ -87,6 +92,7 @@ func (b *Balancer) Start(stop chan struct{}) error {
 	return nil
 }
 
+// Select selects an endpoint using the current scheduling policy.
 func (b *Balancer) Select(e Endpoints) Endpoint {
 	b.RLock()
 	defer b.RUnlock()
@@ -97,6 +103,7 @@ func (b *Balancer) Select(e Endpoints) Endpoint {
 	return b.Policy.Select(e)
 }
 
+// ListenForEndpoints listens for updates endpoints.
 func (b *Balancer) ListenForEndpoints(port int) {
 	handler := http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
