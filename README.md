@@ -14,13 +14,19 @@ Docker 1.10 and docker deamon running.
 
 ## Installation
 
-### Binaries
-Download binary for your platform on the [releases](https://github.com/abiosoft/dockward/releases) page.
+### Binary
+Download binary for other platforms on the [releases](https://github.com/abiosoft/dockward/releases) page.
+```sh
+curl -LO https://github.com/abiosoft/dockward/releases/download/0.0.2/dockward_linux_amd64.tar.gz \
+&& tar xvfz dockward_linux_amd64.tar.gz \
+&& sudo mv dockward_linux_amd64 /usr/local/bin/dockward \
+&& sudo chmod +x /usr/local/bin/dockward
+```
 
 ### Source
 Requires Go.
 ```sh
-$ go get github.com/abiosoft/dockward
+go get github.com/abiosoft/dockward
 ```
 
 ## Usage
@@ -28,23 +34,23 @@ Note: If dockward is not running on Linux or docker host, you will access it via
 
 Forward port `8080` to port `80` in container `amazing_leavitt`.
 ```sh
-$ dockward 8080 80 name=amazing_levitt
+dockward 8080 80 name=amazing_levitt
 ```
 Forward port `8080` to port `80` in containers with label `type=nginx`.
 ```sh
-$ dockward 8080 80 label=type=nginx
+dockward 8080 80 label=type=nginx
 ```
 Forward port `8080` to a local port `3000`.
 ```sh
-$ dockward --host 8080 3000
+dockward --host 8080 3000
 ```
 Forward port `8080` to endpoints `127.0.0.1:3000` and `127.0.0.1:3001`.
 ```sh
-$ dockward --host 8080 127.0.0.1:3000 127.0.0.1:3001
+dockward --host 8080 127.0.0.1:3000 127.0.0.1:3001
 ```
 For more.
 ```
-$ dockward --help
+dockward --help
 ```
 
 ## Limitations
