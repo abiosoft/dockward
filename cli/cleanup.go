@@ -13,6 +13,7 @@ func trapInterrupts(exit chan struct{}) chan struct{} {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	signal.Notify(c, syscall.SIGTERM)
+	signal.Notify(c, syscall.SIGINT)
 	go func() {
 		select {
 		case <-c:
