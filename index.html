@@ -13,13 +13,13 @@
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
 
-    <title>Dockward by abiosoft</title>
+    <title>dockward by abiosoft</title>
   </head>
 
   <body>
     <header>
       <div class="inner">
-        <h1>Dockward</h1>
+        <h1>dockward</h1>
         <h2>Port forwarding tool for Docker containers</h2>
         <a href="https://github.com/abiosoft/dockward" class="button"><small>View project on</small> GitHub</a>
       </div>
@@ -30,7 +30,7 @@
         <section id="main-content">
           <div class="highlight highlight-source-shell"><pre>dockward 8080 80 label=image_type=nginx</pre></div>
 
-<p>Typical Dockward use cases include:</p>
+<p>Typical dockward use cases include:</p>
 
 <ul>
 <li>Port forwarding to containers without published ports.</li>
@@ -41,10 +41,19 @@
 <h2>
 <a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
 
+<h3>
+<a id="binary" class="anchor" href="#binary" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Binary</h3>
+
 <div class="highlight highlight-source-shell"><pre>curl -LO https://github.com/abiosoft/dockward/releases/download/0.0.2/dockward_linux_amd64.tar.gz \
 <span class="pl-k">&amp;&amp;</span> tar xvfz dockward_linux_amd64.tar.gz \
 <span class="pl-k">&amp;&amp;</span> sudo mv dockward_linux_amd64 /usr/local/bin/dockward \
 <span class="pl-k">&amp;&amp;</span> sudo chmod +x /usr/local/bin/dockward</pre></div>
+
+<h3>
+<a id="source" class="anchor" href="#source" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Source</h3>
+
+<pre><code>go get github.com/abiosoft/dockward
+</code></pre>
 
 <h2>
 <a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Requirements</h2>
@@ -69,30 +78,31 @@
 
 <p>Forward port <code>8080</code> to port <code>80</code> in container <code>amazing_leavitt</code>.</p>
 
-<div class="highlight highlight-source-shell"><pre>$ dockward 8080 80 name=amazing_levitt</pre></div>
+<div class="highlight highlight-source-shell"><pre>dockward 8080 80 name=amazing_levitt</pre></div>
 
 <p>Forward port <code>8080</code> to port <code>80</code> in containers with label <code>type=nginx</code>.</p>
 
-<div class="highlight highlight-source-shell"><pre>$ dockward 8080 80 label=<span class="pl-c1">type</span>=nginx</pre></div>
+<div class="highlight highlight-source-shell"><pre>dockward 8080 80 label=<span class="pl-c1">type</span>=nginx</pre></div>
 
 <p>Forward port <code>8080</code> to a local port <code>3000</code>.</p>
 
-<div class="highlight highlight-source-shell"><pre>$ dockward --host 8080 3000</pre></div>
+<div class="highlight highlight-source-shell"><pre>dockward --host 8080 3000</pre></div>
 
 <p>Forward port <code>8080</code> to endpoints <code>127.0.0.1:3000</code> and <code>127.0.0.1:3001</code>.</p>
 
-<div class="highlight highlight-source-shell"><pre>$ dockward --host 8080 127.0.0.1:3000 127.0.0.1:3001</pre></div>
+<div class="highlight highlight-source-shell"><pre>dockward --host 8080 127.0.0.1:3000 127.0.0.1:3001</pre></div>
 
 <p>For more.</p>
 
-<div class="highlight highlight-source-shell"><pre>$ dockward --help</pre></div>
+<div class="highlight highlight-source-shell"><pre>dockward --help</pre></div>
 
 <h2>
-<a id="limitations" class="anchor" href="#limitations" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Limitations</h2>
+<a id="note" class="anchor" href="#note" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Note</h2>
 
 <ul>
-<li>Dockward is intended for simple local development use cases. It may work for you outside of that.</li>
-<li>Docker networks created are default settings i.e. bridge/overlay as the case may be. Nothing special.</li>
+<li>dockward is still in experimental state, don't rely on the stability.</li>
+<li>dockward is intended for simple local development use cases. It may work for you outside of that.</li>
+<li>docker networks created are default settings i.e. bridge/overlay as the case may be. Nothing special.</li>
 </ul>
 
 <h2>
@@ -109,12 +119,16 @@
         </section>
 
         <aside id="sidebar">
-          <a href="https://github.com/abiosoft/dockward/releases" class="button">
+          <a href="https://github.com/abiosoft/dockward/zipball/master" class="button">
             <small>Download</small>
-            binaries
+            .zip file
+          </a>
+          <a href="https://github.com/abiosoft/dockward/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
           </a>
 
-          <p class="repo-owner"><a href="https://github.com/abiosoft/dockward">dockward</a> is maintained by <a href="https://github.com/abiosoft">abiosoft</a>.</p>
+          <p class="repo-owner"><a href="https://github.com/abiosoft/dockward"></a> is maintained by <a href="https://github.com/abiosoft">abiosoft</a>.</p>
 
           <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
         </aside>
