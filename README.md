@@ -2,12 +2,12 @@
 
 Port forwarding tool for Docker containers. 
 
+![Demonstration](https://github.com/abiosoft/dockward/blob/master/dockward.gif)
+
 Typical Dockward use cases include:
 * Port forwarding to containers without published ports.
 * Port forwarding to containers based on a filter.
 * Testing stateless app scaled via docker-compose.
-
-![Demonstration](https://github.com/abiosoft/dockward/blob/master/dockward.gif)
 
 ## Requirements
 Docker 1.10 and docker deamon running.
