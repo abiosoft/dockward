@@ -7,6 +7,8 @@ Typical Dockward use cases include:
 * Port forwarding to containers based on a filter.
 * Testing stateless app scaled via docker-compose.
 
+![Demonstration](https://github.com/abiosoft/dockward/blob/master/dockward.gif)
+
 ## Requirements
 Docker 1.10 and docker deamon running.
 
@@ -53,9 +55,6 @@ $ dockward --help
 Naming is hard, you know.
 
 **Dock**erFor**ward**, port **forwarding** tool for **docker** containers.
-
-## Demonstration Video
-TBA
 
 ## License
 Apache 2
