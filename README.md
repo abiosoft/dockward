@@ -1,6 +1,9 @@
 ```sh
-dockward 8080 80 label=image_type=nginx
+dockward 80 name=nginx
 ```
+
+![Demonstration](https://github.com/abiosoft/dockward/blob/master/dockward.gif)
+
 Typical dockward use cases include:
 * Port forwarding to containers without published ports.
 * Port forwarding to containers based on a filter.
@@ -32,9 +35,9 @@ Docker 1.10 and running docker daemon.
 ## Usage
 Note: If dockward is not running on Linux or docker host, you will access it via docker host ip (e.g. dockermachine ip). Except `--host` mode.
 
-Forward port `8080` to port `80` in container `amazing_leavitt`.
+Forward port `8080` to port `80` in container with id `966a469e9716`.
 ```sh
-dockward 8080 80 name=amazing_levitt
+dockward 8080 80 id=966a469e9716
 ```
 Forward port `8080` to port `80` in containers with label `type=nginx`.
 ```sh
@@ -63,7 +66,4 @@ Naming is hard, you know.
 
 **Dock**erFor**ward**, port **forwarding** tool for **docker** containers.
 
-## Demonstration Video
-TBA
-```
-```
+
