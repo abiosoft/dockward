@@ -8,6 +8,7 @@ import (
 	"github.com/docker/engine-api/types/container"
 	"github.com/docker/engine-api/types/strslice"
 	"github.com/docker/go-connections/nat"
+	"golang.org/x/net/context"
 )
 
 var errNetworkNotFound = errors.New("Error: Network not found. Consider restarting dockward.")
@@ -21,7 +22,7 @@ func imageString() string {
 
 // containerIp retrieves the ip address of container with id on the dockward network.
 func containerIp(id string) (string, error) {
-	info, err := client.ContainerInspect(id)
+	info, err := client.ContainerInspect(context.Background(), id)
 	if err != nil {
 		return "", err
 	}
@@ -80,7 +81,7 @@ func launchBalancerContainer(hostPort int, monitorPort int, policy string, desti
 		},
 	}
 
-	resp, err := client.ContainerCreate(containerConf, hostConf, nil, "")
+	resp, err := client.ContainerCreate(context.Background(), containerConf, hostConf, nil, "")
 	if err != nil {
 		return err
 	}
@@ -89,12 +90,12 @@ func launchBalancerContainer(hostPort int, monitorPort int, policy string, desti
 		return err
 	}
 
-	if err := client.ContainerStart(resp.ID); err != nil {
+	if err := client.ContainerStart(context.Background(), resp.ID); err != nil {
 		return err
 	}
 
 	addCleanUpFunc(func() {
-		client.ContainerKill(resp.ID, "")
+		client.ContainerKill(context.Background(), resp.ID, "")
 	})
 
 	return err

@@ -4,6 +4,7 @@ import (
 	"github.com/abiosoft/dockward/util"
 	docker "github.com/docker/engine-api/client"
 	"github.com/docker/engine-api/types"
+	"golang.org/x/net/context"
 )
 
 const namePrefix = "dockward_"
@@ -24,7 +25,7 @@ func Create(client *docker.Client) (*Network, error) {
 
 // Create creates a new network using name.
 func CreateWithName(client *docker.Client, name string) (*Network, error) {
-	n, err := client.NetworkCreate(types.NetworkCreate{Name: name, Internal: true})
+	n, err := client.NetworkCreate(context.Background(), types.NetworkCreate{Name: name, Internal: true})
 	if err != nil {
 		return nil, err
 	}
@@ -37,27 +38,27 @@ func CreateWithName(client *docker.Client, name string) (*Network, error) {
 
 // ConnectContainer connects docker container with id to the network.
 func (n *Network) ConnectContainer(id string) error {
-	return n.client.NetworkConnect(n.Id, id, nil)
+	return n.client.NetworkConnect(context.Background(), n.Id, id, nil)
 }
 
 // DisconnectContainer disconnects docker container with id from the network.
 func (n *Network) DisconnectContainer(id string) error {
-	return n.client.NetworkDisconnect(n.Id, id, false)
+	return n.client.NetworkDisconnect(context.Background(), n.Id, id, false)
 }
 
 // Stop disconnects all connected docker containers from the network and
 // removes the network.
 func (n *Network) Stop() error {
-	info, err := n.client.NetworkInspect(n.Id)
+	info, err := n.client.NetworkInspect(context.Background(), n.Id)
 	if err != nil {
 		return err
 	}
 	// disconnect all containers from it
 	for id, _ := range info.Containers {
-		if err := n.client.NetworkDisconnect(n.Id, id, true); err != nil {
+		if err := n.client.NetworkDisconnect(context.Background(), n.Id, id, true); err != nil {
 			return err
 		}
 	}
 	// Remove network
-	return n.client.NetworkRemove(n.Id)
+	return n.client.NetworkRemove(context.Background(), n.Id)
 }

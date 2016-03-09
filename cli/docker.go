@@ -36,7 +36,7 @@ func setupDocker() error {
 
 func pullImage() error {
 	// check if image is already pulled
-	l, err := client.ImageList(types.ImageListOptions{})
+	l, err := client.ImageList(context.Background(), types.ImageListOptions{})
 	for i := range l {
 		for _, tag := range l[i].RepoTags {
 			if tag == imageString() {

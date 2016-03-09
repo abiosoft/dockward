@@ -115,7 +115,7 @@ func updateContainerEndpoints(msg balancer.Message, dockerHost string, endpointP
 
 // validContainer validates if the container can be added/removed from endpoints.
 func validContainer(name string, label string) bool {
-	info, err := client.ContainerInspect(name)
+	info, err := client.ContainerInspect(context.Background(), name)
 	if err != nil {
 		log.Println(err)
 		return false
