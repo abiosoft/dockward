@@ -11,7 +11,7 @@ import (
 
 const (
 	AppName = "dockward"
-	Version = "0.0.2"
+	Version = "0.0.3"
 	Usage   = `Usage: dockward [options...] <port> [<container port> <filter>] [endpoints...]
 try 'dockward --help' for more.
 `
@@ -79,7 +79,7 @@ func parseCli() cliConf {
 		exit(nil)
 	}
 	if conf.Version {
-		fmt.Println("dockward version", Version)
+		fmt.Println(AppName, "version", Version)
 		exit(nil)
 	}
 
