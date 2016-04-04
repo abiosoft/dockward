@@ -32,9 +32,9 @@ go get github.com/abiosoft/dockward
 ## Usage
 Note: If dockward is not running on Linux or docker host, you will access it via docker host ip (e.g. dockermachine ip). Except `--host` mode.
 
-Forward port `8080` to port `80` in container `amazing_leavitt`.
+Forward port `8080` to port `8080` in container `amazing_leavitt`.
 ```sh
-dockward 8080 80 name=amazing_levitt
+dockward 8080 name=amazing_levitt
 ```
 Forward port `8080` to port `80` in containers with label `type=nginx`.
 ```sh

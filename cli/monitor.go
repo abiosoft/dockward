@@ -81,7 +81,7 @@ eventLoop:
 			continue eventLoop
 		}
 
-		updateContainerEndpoints(msg, dockerHost, endpointPort)
+		go updateContainerEndpoints(msg, dockerHost, endpointPort)
 	}
 }
 
