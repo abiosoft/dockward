@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/abiosoft/dockward/balancer"
@@ -15,15 +14,15 @@ import (
 )
 
 const (
-	StatusDie     = "die"
-	StatusStart   = "start"
-	TypeContainer = "container"
+	statusDie     = "die"
+	statusStart   = "start"
+	typeContainer = "container"
 )
 
-type Event struct {
+type event struct {
 	Status string `json:"status"`
 	Type   string
-	Id     string `json:"id"`
+	ID     string `json:"id"`
 	Actor  struct {
 		Attributes map[string]string
 	}
@@ -39,39 +38,39 @@ func monitor(endpointPort int, containerPort int, label, dockerHost string) {
 
 eventLoop:
 	for {
-		var e Event
+		var e event
 		if err := decoder.Decode(&e); err != nil {
-			log.Println(os.Stderr, err)
+			log.Println(err)
 			continue
 		}
-		if e.Type != TypeContainer {
+		if e.Type != typeContainer {
 			continue
 		}
-		if !validContainer(e.Id, label) {
+		if !validContainer(e.ID, label) {
 			continue
 		}
 
 		msg := balancer.Message{
 			Endpoint: balancer.Endpoint{
-				Id:   e.Id,
+				Id:   e.ID,
 				Port: containerPort,
 			},
 		}
 		switch e.Status {
-		case StatusDie:
+		case statusDie:
 			msg.Remove = true
-			err = disconnectContainer(e.Id)
+			err = disconnectContainer(e.ID)
 			if err != nil {
 				log.Println(err)
 				continue eventLoop
 			}
-		case StatusStart:
-			err = connectContainer(e.Id)
+		case statusStart:
+			err = connectContainer(e.ID)
 			if err != nil {
 				log.Println(err)
 				continue eventLoop
 			}
-			ip, err := containerIp(e.Id)
+			ip, err := containerIP(e.ID)
 			if err != nil {
 				log.Println(err)
 				continue

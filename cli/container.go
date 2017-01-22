@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/abiosoft/dockward/balancer"
+	"github.com/docker/engine-api/types"
 	"github.com/docker/engine-api/types/container"
 	"github.com/docker/engine-api/types/strslice"
 	"github.com/docker/go-connections/nat"
@@ -21,7 +22,7 @@ func imageString() string {
 }
 
 // containerIp retrieves the ip address of container with id on the dockward network.
-func containerIp(id string) (string, error) {
+func containerIP(id string) (string, error) {
 	info, err := client.ContainerInspect(context.Background(), id)
 	if err != nil {
 		return "", err
@@ -90,7 +91,7 @@ func launchBalancerContainer(hostPort int, monitorPort int, policy string, desti
 		return err
 	}
 
-	if err := client.ContainerStart(context.Background(), resp.ID); err != nil {
+	if err := client.ContainerStart(context.Background(), resp.ID, types.ContainerStartOptions{}); err != nil {
 		return err
 	}
 

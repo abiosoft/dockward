@@ -47,15 +47,15 @@ func pullImage() error {
 
 	// otherwise pull image
 	fmt.Println("Required docker image not found. Attempting to pull.")
-	options := types.ImagePullOptions{ImageID: imageName, Tag: imageTag}
-	resp, err := client.ImagePull(context.Background(), options, nil)
+	options := types.ImagePullOptions{All: true}
+	resp, err := client.ImagePull(context.Background(), fmt.Sprintf("docker.io/%s:%s", imageName, imageTag), options)
 	if err != nil {
 		return err
 	}
 
 	type progress struct {
 		Status   string `json:"status"`
-		Id       string `json:"id"`
+		ID       string `json:"id"`
 		Error    string `json:"error"`
 		Progress string `json:"progress"`
 	}
@@ -75,7 +75,7 @@ func pullImage() error {
 			return fmt.Errorf(p.Error)
 		}
 		if p.Progress == "" {
-			fmt.Println(p.Status, p.Id)
+			fmt.Println(p.Status, p.ID)
 		}
 	}
 

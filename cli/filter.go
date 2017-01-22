@@ -29,7 +29,7 @@ func endpointsFromFilter(containerPort int, key, value string) (balancer.Endpoin
 		if err := connectContainer(c.ID); err != nil {
 			return nil, err
 		}
-		ip, err := containerIp(c.ID)
+		ip, err := containerIP(c.ID)
 		if err != nil {
 			return nil, err
 		}

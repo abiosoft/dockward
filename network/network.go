@@ -13,7 +13,7 @@ const nameSuffixLen = 10
 // Network is a dockward network.
 type Network struct {
 	Name   string
-	Id     string
+	ID     string
 	client *docker.Client
 }
 
@@ -23,42 +23,42 @@ func Create(client *docker.Client) (*Network, error) {
 	return CreateWithName(client, name)
 }
 
-// Create creates a new network using name.
+// CreateWithName creates a new network using name.
 func CreateWithName(client *docker.Client, name string) (*Network, error) {
-	n, err := client.NetworkCreate(context.Background(), types.NetworkCreate{Name: name, Internal: true})
+	n, err := client.NetworkCreate(context.Background(), name, types.NetworkCreate{Internal: true})
 	if err != nil {
 		return nil, err
 	}
 	return &Network{
 		Name:   name,
-		Id:     n.ID,
+		ID:     n.ID,
 		client: client,
 	}, nil
 }
 
 // ConnectContainer connects docker container with id to the network.
 func (n *Network) ConnectContainer(id string) error {
-	return n.client.NetworkConnect(context.Background(), n.Id, id, nil)
+	return n.client.NetworkConnect(context.Background(), n.ID, id, nil)
 }
 
 // DisconnectContainer disconnects docker container with id from the network.
 func (n *Network) DisconnectContainer(id string) error {
-	return n.client.NetworkDisconnect(context.Background(), n.Id, id, false)
+	return n.client.NetworkDisconnect(context.Background(), n.ID, id, false)
 }
 
 // Stop disconnects all connected docker containers from the network and
 // removes the network.
 func (n *Network) Stop() error {
-	info, err := n.client.NetworkInspect(context.Background(), n.Id)
+	info, err := n.client.NetworkInspect(context.Background(), n.ID)
 	if err != nil {
 		return err
 	}
 	// disconnect all containers from it
-	for id, _ := range info.Containers {
-		if err := n.client.NetworkDisconnect(context.Background(), n.Id, id, true); err != nil {
+	for id := range info.Containers {
+		if err := n.client.NetworkDisconnect(context.Background(), n.ID, id, true); err != nil {
 			return err
 		}
 	}
 	// Remove network
-	return n.client.NetworkRemove(context.Background(), n.Id)
+	return n.client.NetworkRemove(context.Background(), n.ID)
 }
