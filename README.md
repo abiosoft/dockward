@@ -14,10 +14,15 @@ Docker 1.10 and docker deamon running.
 
 ## Installation
 
-### Binary
-Download binary for other platforms on the [releases](https://github.com/abiosoft/dockward/releases) page.
+### Homebrew (OSX only)
 ```sh
-curl -LO https://github.com/abiosoft/dockward/releases/download/0.0.2/dockward_linux_amd64.tar.gz \
+brew install dockward
+```
+
+### Binary
+Download binary for other platforms on the [releases](https://github.com/abiosoft/dockward/releases) page or replace download link accordingly for OSX.
+```sh
+curl -LO https://github.com/abiosoft/dockward/releases/download/0.0.4/dockward_linux_amd64.tar.gz \
 && tar xvfz dockward_linux_amd64.tar.gz \
 && sudo mv dockward_linux_amd64 /usr/local/bin/dockward \
 && sudo chmod +x /usr/local/bin/dockward
@@ -26,7 +31,7 @@ curl -LO https://github.com/abiosoft/dockward/releases/download/0.0.2/dockward_l
 ### Source
 Requires Go.
 ```sh
-go get github.com/abiosoft/dockward
+go get -v -u github.com/abiosoft/dockward
 ```
 
 ## Usage

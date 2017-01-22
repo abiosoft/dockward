@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -10,12 +11,12 @@ import (
 )
 
 const (
-	AppName = "dockward"
-	Version = "0.0.3"
-	Usage   = `Usage: dockward [options...] <port> [<container port> <filter>] [endpoints...]
+	appName    = "dockward"
+	appVersion = "0.0.4"
+	appUsage   = `Usage: dockward [options...] <port> [<container port> <filter>] [endpoints...]
 try 'dockward --help' for more.
 `
-	FullUsage = `Usage: dockward [options...] <port> [<container port> <filter>] [endpoints...]
+	appFullUsage = `Usage: dockward [options...] <port> [<container port> <filter>] [endpoints...]
 
 options:
   --host=false         Host mode, forward to host endpoints instead of container.
@@ -75,24 +76,24 @@ func parseCli() cliConf {
 	exitIfErr(err)
 
 	if conf.Help {
-		fmt.Println(FullUsage)
+		fmt.Println(appFullUsage)
 		exit(nil)
 	}
 	if conf.Version {
-		fmt.Println(AppName, "version", Version)
+		fmt.Println(appName, "version", appVersion)
 		exit(nil)
 	}
 
 	switch fs.NArg() {
 	case 0:
-		usageErr(fmt.Errorf("port missing."))
+		usageErr(errors.New("port missing"))
 	case 1:
 		if !conf.Host {
 			// docker mode
-			usageErr(fmt.Errorf("filter missing."))
+			usageErr(errors.New("filter missing"))
 		} else if !conf.remoteClient {
 			// host mode
-			usageErr(fmt.Errorf("endpoint(s) missing."))
+			usageErr(errors.New("endpoint(s) missing"))
 		}
 
 	}
@@ -140,7 +141,7 @@ func parseCli() cliConf {
 }
 
 func usageErr(err error) {
-	exit(fmt.Errorf("dockward: %v\n%v", err, Usage))
+	exit(fmt.Errorf("dockward: %v\n%v", err, appUsage))
 }
 
 func exitIfErr(err error) {
