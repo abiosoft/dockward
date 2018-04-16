@@ -1,15 +1,15 @@
 package cli
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/abiosoft/dockward/balancer"
-	"github.com/docker/engine-api/types"
-	"github.com/docker/engine-api/types/container"
-	"github.com/docker/engine-api/types/strslice"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/strslice"
 	"github.com/docker/go-connections/nat"
-	"golang.org/x/net/context"
 )
 
 var errNetworkNotFound = errors.New("Error: Network not found. Consider restarting dockward.")

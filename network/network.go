@@ -1,10 +1,11 @@
 package network
 
 import (
+	"context"
+
 	"github.com/abiosoft/dockward/util"
-	docker "github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
-	"golang.org/x/net/context"
+	"github.com/docker/docker/api/types"
+	docker "github.com/docker/docker/client"
 )
 
 const namePrefix = "dockward_"
@@ -49,7 +50,7 @@ func (n *Network) DisconnectContainer(id string) error {
 // Stop disconnects all connected docker containers from the network and
 // removes the network.
 func (n *Network) Stop() error {
-	info, err := n.client.NetworkInspect(context.Background(), n.ID)
+	info, err := n.client.NetworkInspect(context.Background(), n.ID, false)
 	if err != nil {
 		return err
 	}

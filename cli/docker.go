@@ -1,14 +1,14 @@
 package cli
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 
 	"github.com/abiosoft/dockward/network"
-	docker "github.com/docker/engine-api/client"
-	"github.com/docker/engine-api/types"
-	"golang.org/x/net/context"
+	"github.com/docker/docker/api/types"
+	docker "github.com/docker/docker/client"
 )
 
 var (

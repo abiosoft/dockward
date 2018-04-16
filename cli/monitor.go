@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -9,8 +10,8 @@ import (
 	"strings"
 
 	"github.com/abiosoft/dockward/balancer"
-	"github.com/docker/engine-api/types"
-	"golang.org/x/net/context"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/events"
 )
 
 const (
@@ -30,58 +31,61 @@ type event struct {
 
 // monitor monitors docker containers and add/remove from port forwarding
 // endpoints as required.
-func monitor(endpointPort int, containerPort int, label, dockerHost string) {
+func monitor(endpointPort, containerPort int, label, dockerHost string) {
 	resp, err := client.Events(context.Background(), types.EventsOptions{})
-	exitIfErr(err)
-
-	decoder := json.NewDecoder(resp)
 
 eventLoop:
 	for {
-		var e event
-		if err := decoder.Decode(&e); err != nil {
+		select {
+		case m := <-resp:
+			handleMessage(m, endpointPort, containerPort, label, dockerHost)
+		case err := <-err:
 			log.Println(err)
-			continue
+			break eventLoop
 		}
-		if e.Type != typeContainer {
-			continue
-		}
-		if !validContainer(e.ID, label) {
-			continue
-		}
-
-		msg := balancer.Message{
-			Endpoint: balancer.Endpoint{
-				Id:   e.ID,
-				Port: containerPort,
-			},
-		}
-		switch e.Status {
-		case statusDie:
-			msg.Remove = true
-			err = disconnectContainer(e.ID)
-			if err != nil {
-				log.Println(err)
-				continue eventLoop
-			}
-		case statusStart:
-			err = connectContainer(e.ID)
-			if err != nil {
-				log.Println(err)
-				continue eventLoop
-			}
-			ip, err := containerIP(e.ID)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			msg.Endpoint.Ip = ip
-		default:
-			continue eventLoop
-		}
-
-		go updateContainerEndpoints(msg, dockerHost, endpointPort)
 	}
+
+}
+
+func handleMessage(e events.Message, endpointPort, containerPort int, label, dockerHost string) error {
+	if e.Type != typeContainer {
+		return nil
+	}
+	if !validContainer(e.ID, label) {
+		return nil
+	}
+
+	msg := balancer.Message{
+		Endpoint: balancer.Endpoint{
+			Id:   e.ID,
+			Port: containerPort,
+		},
+	}
+
+	switch e.Status {
+	case statusDie:
+		msg.Remove = true
+		err := disconnectContainer(e.ID)
+		if err != nil {
+			return err
+		}
+	case statusStart:
+		err := connectContainer(e.ID)
+		if err != nil {
+			return err
+		}
+		ip, err := containerIP(e.ID)
+		if err != nil {
+			return err
+		}
+		msg.Endpoint.Ip = ip
+	default:
+		return nil
+	}
+
+	go updateContainerEndpoints(msg, dockerHost, endpointPort)
+	return nil
+
 }
 
 // updateContainerEndpoints updates the endpoints on the load balancer.

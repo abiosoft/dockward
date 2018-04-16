@@ -1,0 +1,14 @@
+package: github.com/abiosoft/dockward
+import:
+- package: github.com/docker/docker
+  version: ~17.5.0-ce-rc3
+  subpackages:
+  - api/types
+  - api/types/container
+  - api/types/filters
+  - api/types/strslice
+  - client
+- package: github.com/docker/go-connections
+  version: ~0.3.0
+  subpackages:
+  - nat
